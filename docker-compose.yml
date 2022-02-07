@@ -1,0 +1,7 @@
+services:
+  lavalink:
+    build:  lavalink/.
+    volumes:
+      - ./lavalink:/home/
+    ports:
+      - "443:443"
