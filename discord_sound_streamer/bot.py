@@ -1,7 +1,9 @@
+import os
+import random
+
 import hikari
 import tanjun
 from lavaplayer import LavalinkClient
-# from discord_sound_streamer.commands.play import component as play_component
 
 from discord_sound_streamer.config import CONFIG
 
@@ -25,14 +27,20 @@ lavalink = LavalinkClient(
 
 
 # On voice state update the bot will update the lavalink node
-@bot.listen(hikari.VoiceStateUpdateEvent)
-async def voice_state_update(event: hikari.VoiceStateUpdateEvent):
+@bot.listen()
+async def voice_state_update(event: hikari.VoiceStateUpdateEvent) -> None:
     await lavalink.raw_voice_state_update(event.guild_id, event.state.user_id, event.state.session_id, event.state.channel_id)
 
 
-@bot.listen(hikari.VoiceServerUpdateEvent)
-async def voice_server_update(event: hikari.VoiceServerUpdateEvent):
+@bot.listen()
+async def voice_server_update(event: hikari.VoiceServerUpdateEvent) -> None:
     await lavalink.raw_voice_server_update(event.guild_id, event.endpoint, event.token)
 
+@bot.listen()
+async def handle_message_create(event: hikari.MessageCreateEvent) -> None:
+    if not event.message.guild_id and event.message.author.id != CONFIG.BOT_ID:
+        filename = random.choice(os.listdir(CONFIG.IMAGE_PATH))
+        with open(CONFIG.IMAGE_PATH + filename, 'rb') as fd:
+            await event.message.respond(attachment=fd.read())
 
 client.load_modules('discord_sound_streamer.commands.play')
