@@ -12,6 +12,7 @@ class Config(BaseModel):
     LAVALINK_HOST: str = 'localhost'
     LAVALINK_PORT: int = 443
     LAVALINK_PASSWORD: str = 'youshallnotpass'
+    IMAGE_PATH: str = './assets/image/'
 
 
 
