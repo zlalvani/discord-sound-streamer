@@ -22,12 +22,12 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
 
             if search_results:
                 SEARCH_WAIT_STORE[key] = search_results[:10]
-                await ctx.respond(f'Results: \n' + '\n'.join(f'{i}. {track.title}' for i, track in enumerate(search_results[:10], start=1)) + '\n\n Use /select <num> to choose')
+                await ctx.respond(f'Results for "{query}": \n' + '\n'.join(f'{i}. {track.title}' for i, track in enumerate(search_results[:10], start=1)) + '\n\n Use /select <num> to choose')
             else:
                 await ctx.respond(f'No results found for {query}...')
                 return
         
-        await asyncio.sleep(10)
+        await asyncio.sleep(30)
         async with SEARCH_WAIT_STORE_LOCK:
             if key in SEARCH_WAIT_STORE:
                 await ctx.respond('No selection given...')

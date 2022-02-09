@@ -1,7 +1,18 @@
 services:
   lavalink:
     build:  lavalink/.
+    hostname: lavalink
     volumes:
       - ./lavalink:/home/
     ports:
       - "443:443"
+  discord_sound_streamer:
+    build: .
+    environment:
+      - WAIT_FOR_LAVALINK=True
+      - LAVALINK_HOST=lavalink
+    volumes:
+      - .:/code
+
+    depends_on:
+      - "lavalink"
