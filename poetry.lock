@@ -297,11 +297,19 @@ cli = ["click (>=5.0)"]
 
 [[package]]
 name = "tomli"
-version = "2.0.0"
+version = "2.0.1"
 description = "A lil' TOML parser"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
+
+[[package]]
+name = "types-retry"
+version = "0.9.5"
+description = "Typing stubs for retry"
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "typing-extensions"
@@ -326,7 +334,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.10"
-content-hash = "934ec710ba99ccea6506013c171bf4f4e293721212a32606afc4b3f1a879eb6e"
+content-hash = "8439e35a730a8696ed0e9df55f8ddffbccbabb382a90f3ee95089bcf1de9b48d"
 
 [metadata.files]
 aiohttp = [
@@ -677,8 +685,12 @@ python-dotenv = [
     {file = "python_dotenv-0.19.2-py2.py3-none-any.whl", hash = "sha256:32b2bdc1873fd3a3c346da1c6db83d0053c3c62f28f1f38516070c4c8971b1d3"},
 ]
 tomli = [
-    {file = "tomli-2.0.0-py3-none-any.whl", hash = "sha256:b5bde28da1fed24b9bd1d4d2b8cba62300bfb4ec9a6187a957e8ddb9434c5224"},
-    {file = "tomli-2.0.0.tar.gz", hash = "sha256:c292c34f58502a1eb2bbb9f5bbc9a5ebc37bee10ffb8c2d6bbdfa8eb13cc14e1"},
+    {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
+    {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
+]
+types-retry = [
+    {file = "types-retry-0.9.5.tar.gz", hash = "sha256:35a2ff8b987258154fb9c302a39df9e8691041b785f34a444a8d47660ef9b4cd"},
+    {file = "types_retry-0.9.5-py3-none-any.whl", hash = "sha256:591393de4b821e6609914c62e64e4334c1ad7707d84ec9ee47ceae901ce6c23f"},
 ]
 typing-extensions = [
     {file = "typing_extensions-4.0.1-py3-none-any.whl", hash = "sha256:7f001e5ac290a0c0401508864c7ec868be4e701886d5b573a9528ed3973d9d3b"},

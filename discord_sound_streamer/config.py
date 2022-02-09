@@ -13,6 +13,7 @@ class Config(BaseModel):
     LAVALINK_PORT: int = 443
     LAVALINK_PASSWORD: str = 'youshallnotpass'
     IMAGE_PATH: str = './assets/image/'
+    WAIT_FOR_LAVALINK: bool = False
 
 
 
