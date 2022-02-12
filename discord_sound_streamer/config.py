@@ -14,6 +14,7 @@ class Config(BaseModel):
     LAVALINK_PASSWORD: str = 'youshallnotpass'
     IMAGE_PATH: str = './assets/image/'
     WAIT_FOR_LAVALINK: bool = False
+    INACTIVE_TIMEOUT: int = 300
 
 
 
