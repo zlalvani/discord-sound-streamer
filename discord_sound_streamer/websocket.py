@@ -6,7 +6,15 @@ from lavaplayer.websocket import WS as _WS
 
 
 class WS(_WS):
+    '''
+    This is a subclass of the lavaplayer websocket class,
+    which has a bug in its callback method that raises an
+    unhandled KeyError when the lavalink server sends a 
+    payload without a 'message' key. 
 
+    _connect() has been re-implemented with a generic 
+    exception handler around the callback invocation.
+    '''
     def __init__(
         self,
         ws: _WS,

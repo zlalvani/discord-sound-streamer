@@ -1,10 +1,11 @@
 import asyncio
 
 import tanjun
-from discord_sound_streamer.bot import bot
 from discord_sound_streamer.bot import lavalink
-from discord_sound_streamer.datastore.in_memory import SEARCH_WAIT_STORE, SEARCH_WAIT_STORE_LOCK, SearchWaitItem
+from discord_sound_streamer.datastore.models.search import SearchWaitValue
+from discord_sound_streamer.datastore.operations.search import SearchWaitKey
 from discord_sound_streamer.services import play as play_service
+from discord_sound_streamer.datastore.operations import search as search_operations
 
 component = tanjun.Component()
 
@@ -13,25 +14,30 @@ component = tanjun.Component()
 @tanjun.as_slash_command("search", "search for music")
 async def search(ctx: tanjun.abc.Context, query: str) -> None:
     if ctx.guild_id:
-        key = SearchWaitItem(guild_id=ctx.guild_id, user_id=ctx.author.id)
+        key = SearchWaitKey(guild_id=ctx.guild_id, user_id=ctx.author.id)
         search_results = await lavalink.auto_search_tracks(query)
-        async with SEARCH_WAIT_STORE_LOCK:
-            if key in SEARCH_WAIT_STORE:
+
+        # First, create a search for the guildmember and store it
+        async with search_operations.get_search_wait_value(key) as data:
+            if data:
                 await ctx.respond('You already have a search in progress')
                 return
 
             if search_results:
-                SEARCH_WAIT_STORE[key] = search_results[:10]
+                search_results = search_results[:10]
+                data = SearchWaitValue(tracks=search_results)
+                search_operations.set_search_wait_value(key, data)
                 await ctx.respond(f'Results for "{query}": \n' + '\n'.join(f'{i}. {track.title}' for i, track in enumerate(search_results[:10], start=1)) + '\n\n Use /select <num> to choose')
             else:
                 await ctx.respond(f'No results found for {query}...')
                 return
         
+        # After 30 seconds, the search is considered expired. If it still exists, remove it. 
         await asyncio.sleep(30)
-        async with SEARCH_WAIT_STORE_LOCK:
-            if key in SEARCH_WAIT_STORE:
+        async with search_operations.get_search_wait_value(key) as data:
+            if data:
                 await ctx.respond('No selection given...')
-                del SEARCH_WAIT_STORE[key]
+                search_operations.remove_search_wait_value(key)
 
 
 @component.with_slash_command
@@ -39,18 +45,16 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
 @tanjun.as_slash_command("select", "select a search result")
 async def select(ctx: tanjun.abc.Context, selection: int) -> None:
     if ctx.guild_id:
-        key = SearchWaitItem(guild_id=ctx.guild_id, user_id=ctx.author.id)
-        async with SEARCH_WAIT_STORE_LOCK:
-            search_results = SEARCH_WAIT_STORE.get(key)
-            if search_results:
-                if not (len(search_results) >= selection > 0):
-                    await ctx.respond('Invalid selection...')
-                    return
-
-                song = search_results[selection - 1]
-                await play_service.play(ctx, song)
-                del SEARCH_WAIT_STORE[key]
+        key = SearchWaitKey(guild_id=ctx.guild_id, user_id=ctx.author.id)
+        async with search_operations.get_search_wait_value(key) as data:
+            if data:
+                if 0 < selection <= len(data.tracks):
+                    await play_service.play(ctx, data.tracks[selection - 1])
+                    search_operations.remove_search_wait_value(key)
+                else:
+                    await ctx.respond(f'Invalid selection. Please choose a number between 1 and {len(data.tracks)}')
             else:
-                await ctx.respond('You don\'t have an open search')
+                await ctx.respond('No search in progress')
+
 
 loader = component.make_loader()
