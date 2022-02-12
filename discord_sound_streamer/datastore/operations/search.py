@@ -11,8 +11,6 @@ from discord_sound_streamer.datastore.models.search import SearchWaitKey, Search
 _SEARCH_WAIT_STORE_LOCK: asyncio.Lock = asyncio.Lock()
 _SEARCH_WAIT_STORE: Dict[SearchWaitKey, SearchWaitValue] = {}
 
-class SearchValueNotFoundException(Exception):
-    pass
 
 @asynccontextmanager
 async def get_search_wait_value(key: SearchWaitKey) -> AsyncIterator[Optional[SearchWaitValue]]:

@@ -5,7 +5,7 @@ description = ""
 authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.scripts]
-start = "scripts:start"
+start = "discord_sound_streamer.bot:start"
 
 [tool.poetry.dependencies]
 python = "~3.10"

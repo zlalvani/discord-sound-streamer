@@ -1,5 +1,7 @@
+import asyncio
 import os
 import random
+import time
 
 import hikari
 import tanjun
@@ -7,6 +9,7 @@ from lavaplayer import LavalinkClient
 
 from discord_sound_streamer.config import CONFIG
 from discord_sound_streamer.logger import logger
+from discord_sound_streamer.websocket import WS
 
 bot = hikari.GatewayBot(token=CONFIG.BOT_TOKEN)
 
@@ -45,6 +48,23 @@ async def handle_message_create(event: hikari.MessageCreateEvent) -> None:
         with open(CONFIG.IMAGE_PATH + filename, 'rb') as fd:
             await event.message.respond(attachment=fd.read())
 
-
+client.load_modules('discord_sound_streamer.commands')
 client.load_modules('discord_sound_streamer.commands.play')
 client.load_modules('discord_sound_streamer.commands.search')
+
+def start():
+    if CONFIG.WAIT_FOR_LAVALINK:
+        time.sleep(15)
+
+    lavalink._ws = WS(lavalink._ws)
+    lavalink.connect()
+
+    # Do this here to avoid circular import problems
+    from discord_sound_streamer.services.voice import leave_inactive_voice_channels
+    async def loop() -> None:
+        while True:
+            await leave_inactive_voice_channels()
+            await asyncio.sleep(30)
+    asyncio.get_event_loop_policy().get_event_loop().create_task(loop())
+
+    bot.run()
