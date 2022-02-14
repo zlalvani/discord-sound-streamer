@@ -20,7 +20,7 @@ async def play(ctx: tanjun.abc.Context, name: str) -> None:
 @tanjun.as_slash_command("skip", "skip the current song")
 async def skip(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
-        queue = await lavalink.queue(ctx.guild_id)
+        queue = await play_service.get_queue(ctx.guild_id)
         if queue:
             await ctx.respond(f'Skipping {queue[0].title}...')
             if len(queue) > 1:
@@ -40,7 +40,7 @@ async def pause(ctx: tanjun.abc.Context) -> None:
 @tanjun.as_slash_command("queue", "show the current queue")
 async def queue(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
-        queue = await lavalink.queue(ctx.guild_id)
+        queue = await play_service.get_queue(ctx.guild_id)
         if queue:
             await ctx.respond(f'Current queue: \n' + '\n'.join([t.title for t in queue]))
         else:
@@ -51,18 +51,24 @@ async def queue(ctx: tanjun.abc.Context) -> None:
 @tanjun.as_slash_command("clear", "clear the current queue")
 async def clear(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
-        await ctx.respond(f'Clearing queue...')
-        await lavalink.stop(ctx.guild_id)
+        if await play_service.get_queue(ctx.guild_id):
+            await ctx.respond(f'Clearing queue...')
+            await lavalink.stop(ctx.guild_id)
+        else:
+            await ctx.respond('Queue empty')
 
 
 @component.with_slash_command
 @tanjun.as_slash_command("shuffle", "shuffle the current queue")
 async def shuffle(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
-        await ctx.respond(f'Shuffling queue...')
-        node = await lavalink.shuffle(ctx.guild_id)
-        if node.queue:
-            await ctx.respond(f'Current queue: \n' + '\n'.join([t.title for t in node.queue]))
+        if await play_service.get_queue(ctx.guild_id):
+            await ctx.respond(f'Shuffling queue...')
+            node = await lavalink.shuffle(ctx.guild_id)
+            if node.queue:
+                await ctx.respond(f'Current queue: \n' + '\n'.join([t.title for t in node.queue]))
+        else:
+            await ctx.respond('Queue empty')
 
 
 loader = component.make_loader()
