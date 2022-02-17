@@ -29,7 +29,7 @@ def build_queue_embed(tracks: List[Track]) -> Embed:
     if tracks:
         for i, track in enumerate(tracks[:8]):
             _apply_track_info(embed, track)
-        if len(tracks) > 20:
+        if len(tracks) > 8:
             embed.add_field(name='...', value=f'{len(tracks) - 8} more items', inline=False)
         embed.set_footer(text=f'Total queue time: {str(timedelta(milliseconds=sum(t.length for t in tracks)))}')
     else:
