@@ -3,6 +3,7 @@ from typing import List
 import tanjun
 from discord_sound_streamer.bot import bot, lavalink
 from discord_sound_streamer.config import CONFIG
+from discord_sound_streamer.services import embed as embed_service
 from hikari import Snowflake
 from lavaplayer import Track
 
@@ -21,8 +22,8 @@ async def play(ctx: tanjun.abc.Context, track: Track) -> None:
         bot_voice_state = guild.get_voice_state(CONFIG.BOT_ID)
         if user_voice_state:
             if queue and bot_voice_state and bot_voice_state.channel_id != user_voice_state.channel_id: 
-                await ctx.respond('Already playing a track in another channel.')
+                await embed_service.reply_message(ctx, 'Already playing a track in another channel.')
                 return
             await bot.update_voice_state(guild.id, user_voice_state.channel_id, self_deaf=True)
-            await ctx.respond(f'Playing {track.title}...')
+            await ctx.respond(embed=embed_service.build_track_embed(track, title='Queueing...'))
             await lavalink.play(guild.id, track, ctx.author.id)

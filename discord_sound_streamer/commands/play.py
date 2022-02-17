@@ -1,6 +1,10 @@
 import tanjun
-from discord_sound_streamer.bot import lavalink
+from discord_sound_streamer.bot import bot, lavalink
+from discord_sound_streamer.datastore.operations import \
+    commands as commands_operations
+from discord_sound_streamer.services import embed as embed_service
 from discord_sound_streamer.services import play as play_service
+from lavaplayer import TrackStartEvent
 
 component = tanjun.Component()
 
@@ -13,7 +17,7 @@ async def play(ctx: tanjun.abc.Context, name: str) -> None:
         if result: 
             await play_service.play(ctx, result[0])
         else:
-            await ctx.respond(f'No results found for {name}...')
+            await embed_service.reply_message(ctx, f'No results found for {name}...')
 
 
 @component.with_slash_command
@@ -22,17 +26,17 @@ async def skip(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
         queue = await play_service.get_queue(ctx.guild_id)
         if queue:
-            await ctx.respond(f'Skipping {queue[0].title}...')
-            if len(queue) > 1:
-                await ctx.respond(f'Playing {queue[1].title}...')
+            await embed_service.reply_message(ctx, f'Skipping {queue[0].title}...')
             await lavalink.skip(ctx.guild_id)
+        else:
+            await embed_service.reply_message(ctx, 'Queue empty')
 
 
 @component.with_slash_command
 @tanjun.as_slash_command("pause", "pause the current song")
 async def pause(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
-        await ctx.respond(f'Pausing...')
+        await embed_service.reply_message(ctx, 'Pausing...')
         await lavalink.pause(ctx.guild_id)
 
 
@@ -41,10 +45,7 @@ async def pause(ctx: tanjun.abc.Context) -> None:
 async def queue(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
         queue = await play_service.get_queue(ctx.guild_id)
-        if queue:
-            await ctx.respond(f'Current queue: \n' + '\n'.join([t.title for t in queue]))
-        else:
-            await ctx.respond(f'Queue empty')
+        await ctx.respond(embed=embed_service.build_queue_embed(queue))
 
 
 @component.with_slash_command
@@ -52,10 +53,10 @@ async def queue(ctx: tanjun.abc.Context) -> None:
 async def clear(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
         if await play_service.get_queue(ctx.guild_id):
-            await ctx.respond(f'Clearing queue...')
+            await embed_service.reply_message(ctx, f'Clearing queue...')
             await lavalink.stop(ctx.guild_id)
         else:
-            await ctx.respond('Queue empty')
+            await embed_service.reply_message(ctx, 'Queue empty')
 
 
 @component.with_slash_command
@@ -63,12 +64,19 @@ async def clear(ctx: tanjun.abc.Context) -> None:
 async def shuffle(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
         if await play_service.get_queue(ctx.guild_id):
-            await ctx.respond(f'Shuffling queue...')
+            await embed_service.reply_message(ctx, f'Shuffling queue...')
             node = await lavalink.shuffle(ctx.guild_id)
             if node.queue:
-                await ctx.respond(f'Current queue: \n' + '\n'.join([t.title for t in node.queue]))
+                await ctx.respond(embed=embed_service.build_queue_embed(node.queue))
         else:
-            await ctx.respond('Queue empty')
+            await embed_service.reply_message(ctx, 'Queue empty')
+
+
+@lavalink.listen(TrackStartEvent)
+async def handle_track_start_event(event: TrackStartEvent) -> None:
+    async with commands_operations.get_last_command(event.guild_id) as command:
+        if command:
+            await bot.rest.create_message(command.channel_id, embed=embed_service.build_track_embed(event.track))
 
 
 loader = component.make_loader()

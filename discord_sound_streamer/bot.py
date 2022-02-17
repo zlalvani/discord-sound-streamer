@@ -48,9 +48,11 @@ async def handle_message_create(event: hikari.MessageCreateEvent) -> None:
         with open(CONFIG.IMAGE_PATH + filename, 'rb') as fd:
             await event.message.respond(attachment=fd.read())
 
+
 client.load_modules('discord_sound_streamer.commands')
 client.load_modules('discord_sound_streamer.commands.play')
 client.load_modules('discord_sound_streamer.commands.search')
+
 
 def start():
     if CONFIG.WAIT_FOR_LAVALINK:
