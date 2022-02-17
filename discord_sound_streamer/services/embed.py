@@ -8,7 +8,7 @@ from lavaplayer import Track
 
 # Discord embeds have max width of 3 inline fields, so they will automatically wrap after this
 def _apply_track_info(embed: Embed, track: Track, ordinal: int = None) -> None:
-    embed.add_field(name=f'{ordinal} Title' if ordinal is not None else 'Title', value=track.title, inline=True)
+    embed.add_field(name=f'{ordinal}. Title' if ordinal is not None else 'Title', value=track.title, inline=True)
     embed.add_field(name='Author', value=track.author, inline=True)
     embed.add_field(name='Length', value=str(timedelta(milliseconds=track.length)), inline=True)
 
