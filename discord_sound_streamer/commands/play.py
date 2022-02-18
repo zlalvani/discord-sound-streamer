@@ -1,3 +1,4 @@
+from typing import Optional
 import tanjun
 from discord_sound_streamer.bot import bot, lavalink
 from discord_sound_streamer.datastore.operations import \
@@ -21,18 +22,22 @@ async def play(ctx: tanjun.abc.Context, name: str) -> None:
 
 
 @component.with_slash_command
-@tanjun.with_int_slash_option('selection', 'the number of your selection', default=1)
+@tanjun.with_int_slash_option('selection', 'the number of your selection', default=1, min_value=1)
 @tanjun.as_slash_command("skip", "skip the current song")
 async def skip(ctx: tanjun.abc.Context, selection: int) -> None:
     if ctx.guild_id:
         guild_node = await lavalink.get_guild_node(ctx.guild_id)
         if guild_node and guild_node.queue:
-            try:
-                await embed_service.reply_message(ctx, f'Skipping {guild_node.queue[selection - 1].title}...')
-                guild_node.queue.pop(selection - 1)
-                await lavalink.set_guild_node(ctx.guild_id, guild_node)
-            except IndexError:
-                await embed_service.reply_message(ctx, f'Selection {selection} not in queue')
+            if selection == 1:
+                await embed_service.reply_message(ctx, f'Skipping {guild_node.queue[0].title}...')
+                await lavalink.skip(ctx.guild_id)
+            else:
+                try:
+                    await embed_service.reply_message(ctx, f'Skipping {guild_node.queue[selection - 1].title}...')
+                    guild_node.queue.pop(selection - 1)
+                    await lavalink.set_guild_node(ctx.guild_id, guild_node)
+                except IndexError:
+                    await embed_service.reply_message(ctx, f'Selection {selection} not in queue')
         else:
             await embed_service.reply_message(ctx, 'Queue empty')
 
