@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 
 import tanjun
 from discord_sound_streamer.bot import lavalink
@@ -17,6 +18,7 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
     if ctx.guild_id:
         key = SearchWaitKey(guild_id=ctx.guild_id, user_id=ctx.author.id)
         search_results = await lavalink.auto_search_tracks(query)
+        searched_at = datetime.utcnow()
 
         # First, create a search for the guildmember and store it
         async with search_operations.get_search_wait_value(key) as data:
@@ -27,7 +29,7 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
             if search_results:
                 # Truncate the search results to 8 because that's the max number of results we can display
                 search_results = search_results[:8]
-                data = SearchWaitValue(tracks=search_results)
+                data = SearchWaitValue(tracks=search_results, searched_at=searched_at)
                 search_operations.set_search_wait_value(key, data)
                 await ctx.respond(embed=embed_service.build_search_embed(query, search_results))
             else:
@@ -37,7 +39,7 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
         # After 30 seconds, the search is considered expired. If it still exists, remove it. 
         await asyncio.sleep(30)
         async with search_operations.get_search_wait_value(key) as data:
-            if data:
+            if data and data.searched_at == searched_at:
                 await embed_service.reply_message(ctx, 'No selection given...')
                 search_operations.remove_search_wait_value(key)
 
