@@ -27,3 +27,12 @@ async def play(ctx: tanjun.abc.Context, track: Track) -> None:
             await bot.update_voice_state(guild.id, user_voice_state.channel_id, self_deaf=True)
             await ctx.respond(embed=embed_service.build_track_embed(track, title='Queueing...'))
             await lavalink.play(guild.id, track, ctx.author.id)
+
+
+async def pause_control(ctx: tanjun.abc.Context, pause: bool) -> None:
+    if ctx.guild_id:
+        if await lavalink.get_guild_node(ctx.guild_id) and (queue := await get_queue(ctx.guild_id)):
+            await embed_service.reply_message(ctx, f'{"Pausing" if pause else "Resuming"} {queue[0].title}...')
+            await lavalink.pause(ctx.guild_id, pause)
+        else:
+            await embed_service.reply_message(ctx, 'Queue empty')
