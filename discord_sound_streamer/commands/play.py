@@ -1,4 +1,3 @@
-from typing import Optional
 import tanjun
 from discord_sound_streamer.bot import bot, lavalink
 from discord_sound_streamer.datastore.operations import \
@@ -45,9 +44,13 @@ async def skip(ctx: tanjun.abc.Context, selection: int) -> None:
 @component.with_slash_command
 @tanjun.as_slash_command("pause", "pause the current song")
 async def pause(ctx: tanjun.abc.Context) -> None:
-    if ctx.guild_id:
-        await embed_service.reply_message(ctx, 'Pausing...')
-        await lavalink.pause(ctx.guild_id)
+    await play_service.pause_control(ctx, True)
+
+
+@component.with_slash_command
+@tanjun.as_slash_command("unpause", "unpause the current song")
+async def unpause(ctx: tanjun.abc.Context) -> None:
+    await play_service.pause_control(ctx, False)
 
 
 @component.with_slash_command
