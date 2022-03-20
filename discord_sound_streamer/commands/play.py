@@ -82,6 +82,37 @@ async def shuffle(ctx: tanjun.abc.Context) -> None:
             await embed_service.reply_message(ctx, 'Queue empty')
 
 
+@component.with_slash_command
+@tanjun.as_slash_command("join", "join the current voice channel if playing your song")
+async def join(ctx: tanjun.abc.Context) -> None:
+    guild = await ctx.fetch_guild()
+    if guild:
+        queue = await play_service.get_queue(guild.id)
+        user_voice_state = guild.get_voice_state(ctx.author.id)
+        if not user_voice_state:
+            await embed_service.reply_message(ctx, 'You are not in a voice channel')
+            return 
+
+        if not queue:
+            await embed_service.reply_message(ctx, 'Queue empty, no reason to join')
+            return
+
+        if not queue[0].requester or queue[0].requester != ctx.author.id:
+            await embed_service.reply_message(ctx, 'You are not the requester of the current song')
+            return
+
+        # if queue[0].requester and queue[0].requester == ctx.author.id:
+        #     await embed_service.reply_message(ctx, f'Joining {ctx.author.mention}...')
+        # else:
+        await embed_service.reply_message(ctx, f'Joining {ctx.author.username}...')
+        await bot.update_voice_state(guild.id, user_voice_state.channel_id, self_deaf=True)
+        await lavalink.play(guild.id, track, ctx.author.id)
+                
+        # await embed_service.reply_message(ctx, 'Joining...')
+        # await 
+        # await lavalink.join(ctx.guild_id)
+
+
 @lavalink.listen(TrackStartEvent)
 async def handle_track_start_event(event: TrackStartEvent) -> None:
     async with commands_operations.get_last_command(event.guild_id) as command:
