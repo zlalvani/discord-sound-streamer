@@ -1,6 +1,7 @@
 import logging
 
 import aiohttp
+import asyncio
 from lavaplayer.websocket import _LOGGER
 from lavaplayer.websocket import WS as _WS
 
@@ -14,6 +15,8 @@ class WS(_WS):
 
     _connect() has been re-implemented with a generic 
     exception handler around the callback invocation.
+
+    TODO Remove this when we are sure the bug is fixed.
     '''
     def __init__(
         self,
@@ -29,13 +32,31 @@ class WS(_WS):
     
     async def _connect(self):
         async with aiohttp.ClientSession(headers=self._headers, loop=self._loop) as session:
-            self.client.session = session
             self.session = session
             try:
                 self.ws = await self.session.ws_connect(self.ws_url)
-            except (aiohttp.ClientConnectorError, aiohttp.WSServerHandshakeError, aiohttp.ServerDisconnectedError, aiohttp.ClientConnectorError) as error:
-                _LOGGER.error(f"Could not connect to websocket: {error}")
-                return
+                if session is None:
+                    await self.check_connection()
+            except (aiohttp.ClientConnectorError, aiohttp.WSServerHandshakeError, aiohttp.ServerDisconnectedError) as error:
+                
+                if isinstance(error, aiohttp.ClientConnectorError):
+                    _LOGGER.error(f"Could not connect to websocket: {error}")
+                    _LOGGER.warning("Reconnecting to websocket after 10 seconds")  
+                    await asyncio.sleep(10)
+                    await self._connect()
+                    return
+                elif isinstance(error, aiohttp.WSServerHandshakeError):
+                    if error.status in (403, 401):  # Unauthorized or Forbidden
+                        _LOGGER.warning("Password authentication failed - closing websocket")
+                        return
+                    _LOGGER.warning("Please check your websocket port - closing websocket")
+                elif isinstance(error, aiohttp.ServerDisconnectedError):
+                    _LOGGER.error(f"Could not connect to websocket: {error}")
+                    _LOGGER.warning("Reconnecting to websocket after 10 seconds")
+                    await asyncio.sleep(10)
+                    await self._connect()
+                    return
+
             _LOGGER.info("Connected to websocket")
             self.is_connect = True
             async for msg in self.ws:
@@ -46,8 +67,8 @@ class WS(_WS):
                         _LOGGER.exception(e)
                         continue
                 elif msg.type == aiohttp.WSMsgType.CLOSED:
-                    logging.error("close")
+                    _LOGGER.error("Websocket closed")
                     break
                 elif msg.type == aiohttp.WSMsgType.ERROR:
-                    logging.error(msg.data)
+                    _LOGGER.error(msg.data)
                     break
