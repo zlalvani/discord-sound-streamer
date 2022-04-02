@@ -13,7 +13,7 @@ hikari = "2.0.0-alpha.105"
 hikari-tanjun = "2.3.1-alpha.1"
 pydantic = "^1.9.0"
 python-dotenv = "^0.19.2"
-lavaplayer = "^1.0.5-alpha.0"
+lavaplayer = "^1.0.8a0"
 types-retry = "^0.9.5"
 
 [tool.poetry.dev-dependencies]
