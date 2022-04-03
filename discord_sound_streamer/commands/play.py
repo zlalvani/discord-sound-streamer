@@ -85,6 +85,43 @@ async def shuffle(ctx: tanjun.abc.Context) -> None:
             await embed_service.reply_message(ctx, 'Queue empty')
 
 
+@component.with_slash_command
+@tanjun.with_str_slash_option("time", "time to seek to (hh:mm:ss)")
+@tanjun.as_slash_command("seek", "seek to a specific time in the current song")
+async def seek(ctx: tanjun.abc.Context, time: str) -> None:
+    if ctx.guild_id:
+        try:
+            time_parts = time.split(':')
+            if len(time_parts) == 3:
+                hours = int(time_parts[0])
+                minutes = int(time_parts[1])
+                seconds = int(time_parts[2])
+            elif len(time_parts) == 2:
+                hours = 0
+                minutes = int(time_parts[0])
+                seconds = int(time_parts[1])
+            elif len(time_parts) == 1:
+                hours = 0
+                minutes = 0
+                seconds = int(time_parts[0])
+            else:
+                raise ValueError
+
+            if minutes > 59 or seconds > 59:
+                raise ValueError
+                
+        except ValueError:
+            await embed_service.reply_message(ctx, 'Invalid time format')
+            return
+
+        if await play_service.get_queue(ctx.guild_id):
+            seek_position = (hours * 3600 + minutes * 60 + seconds) * 1000
+            await embed_service.reply_message(ctx, f'Seeking to {time}...')
+            await lavalink.seek(ctx.guild_id, seek_position)
+        else:
+            await embed_service.reply_message(ctx, 'Queue empty')
+
+
 @lavalink.listen(TrackStartEvent)
 async def handle_track_start_event(event: TrackStartEvent) -> None:
     async with commands_operations.get_last_command(event.guild_id) as command:
