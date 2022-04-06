@@ -1,4 +1,5 @@
 import tanjun
+
 from discord_sound_streamer.bot import client
 from discord_sound_streamer.services import commands as commands_service
 

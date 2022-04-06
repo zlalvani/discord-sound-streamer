@@ -3,6 +3,7 @@ from datetime import datetime
 
 from hikari import Snowflake
 
+
 @dataclass
 class LastCommandValue:
     executed_at: datetime

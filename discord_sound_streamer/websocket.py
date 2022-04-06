@@ -1,23 +1,24 @@
+import asyncio
 import logging
 
 import aiohttp
-import asyncio
 from lavaplayer.websocket import _LOGGER
 from lavaplayer.websocket import WS as _WS
 
 
 class WS(_WS):
-    '''
+    """
     This is a subclass of the lavaplayer websocket class,
     which has a bug in its callback method that raises an
-    unhandled KeyError when the lavalink server sends a 
-    payload without a 'message' key. 
+    unhandled KeyError when the lavalink server sends a
+    payload without a 'message' key.
 
-    _connect() has been re-implemented with a generic 
+    _connect() has been re-implemented with a generic
     exception handler around the callback invocation.
 
     TODO Remove this when we are sure the bug is fixed.
-    '''
+    """
+
     def __init__(
         self,
         ws: _WS,
@@ -29,7 +30,7 @@ class WS(_WS):
         self._loop = ws._loop
         self.emitter = ws.emitter
         self.is_connect: bool = ws.is_connect
-    
+
     async def _connect(self):
         async with aiohttp.ClientSession(headers=self._headers, loop=self._loop) as session:
             self.session = session
@@ -37,11 +38,15 @@ class WS(_WS):
                 self.ws = await self.session.ws_connect(self.ws_url)
                 if session is None:
                     await self.check_connection()
-            except (aiohttp.ClientConnectorError, aiohttp.WSServerHandshakeError, aiohttp.ServerDisconnectedError) as error:
-                
+            except (
+                aiohttp.ClientConnectorError,
+                aiohttp.WSServerHandshakeError,
+                aiohttp.ServerDisconnectedError,
+            ) as error:
+
                 if isinstance(error, aiohttp.ClientConnectorError):
                     _LOGGER.error(f"Could not connect to websocket: {error}")
-                    _LOGGER.warning("Reconnecting to websocket after 10 seconds")  
+                    _LOGGER.warning("Reconnecting to websocket after 10 seconds")
                     await asyncio.sleep(10)
                     await self._connect()
                     return

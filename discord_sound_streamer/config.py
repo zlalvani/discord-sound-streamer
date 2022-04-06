@@ -9,13 +9,12 @@ class Config(BaseModel):
     BOT_TOKEN: str
     BOT_ID: int
     GUILD_ID: Optional[int]
-    LAVALINK_HOST: str = 'localhost'
+    LAVALINK_HOST: str = "localhost"
     LAVALINK_PORT: int = 443
-    LAVALINK_PASSWORD: str = 'youshallnotpass'
-    IMAGE_PATH: str = './assets/image/'
+    LAVALINK_PASSWORD: str = "youshallnotpass"
+    IMAGE_PATH: str = "./assets/image/"
     WAIT_FOR_LAVALINK: bool = False
     INACTIVE_TIMEOUT: int = 300
 
 
-
-CONFIG = Config.parse_obj({**dotenv_values('.env'), **os.environ})
+CONFIG = Config.parse_obj({**dotenv_values(".env"), **os.environ})

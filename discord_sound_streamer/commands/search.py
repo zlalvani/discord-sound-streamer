@@ -2,14 +2,16 @@ import asyncio
 from datetime import datetime
 
 import tanjun
+
 from discord_sound_streamer.bot import lavalink
 from discord_sound_streamer.datastore.models.search import SearchWaitValue
-from discord_sound_streamer.datastore.operations.search import SearchWaitKey
-from discord_sound_streamer.services import play as play_service
-from discord_sound_streamer.services import embed as embed_service
 from discord_sound_streamer.datastore.operations import search as search_operations
+from discord_sound_streamer.datastore.operations.search import SearchWaitKey
+from discord_sound_streamer.services import embed as embed_service
+from discord_sound_streamer.services import play as play_service
 
 component = tanjun.Component()
+
 
 @component.with_slash_command
 @tanjun.with_str_slash_option("query", "search term")
@@ -23,7 +25,7 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
         # First, create a search for the guildmember and store it
         async with search_operations.get_search_wait_value(key) as data:
             if data:
-                await embed_service.reply_message(ctx, 'You already have a search in progress')
+                await embed_service.reply_message(ctx, "You already have a search in progress")
                 return
 
             if search_results:
@@ -33,14 +35,14 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
                 search_operations.set_search_wait_value(key, data)
                 await ctx.respond(embed=embed_service.build_search_embed(query, search_results))
             else:
-                await embed_service.reply_message(ctx, f'No results found for {query}...')
+                await embed_service.reply_message(ctx, f"No results found for {query}...")
                 return
-        
-        # After 30 seconds, the search is considered expired. If it still exists, remove it. 
+
+        # After 30 seconds, the search is considered expired. If it still exists, remove it.
         await asyncio.sleep(30)
         async with search_operations.get_search_wait_value(key) as data:
             if data and data.searched_at == searched_at:
-                await embed_service.reply_message(ctx, 'No selection given...')
+                await embed_service.reply_message(ctx, "No selection given...")
                 search_operations.remove_search_wait_value(key)
 
 
@@ -56,9 +58,12 @@ async def select(ctx: tanjun.abc.Context, selection: int) -> None:
                     await play_service.play(ctx, data.tracks[selection - 1])
                     search_operations.remove_search_wait_value(key)
                 else:
-                    await embed_service.reply_message(ctx, f'Invalid selection. Please choose a number between 1 and {len(data.tracks)}')
+                    await embed_service.reply_message(
+                        ctx,
+                        f"Invalid selection. Please choose a number between 1 and {len(data.tracks)}",
+                    )
             else:
-                await embed_service.reply_message(ctx, 'No search in progress')
+                await embed_service.reply_message(ctx, "No search in progress")
 
 
 loader = component.make_loader()
