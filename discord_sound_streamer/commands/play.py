@@ -90,6 +90,7 @@ async def shuffle(ctx: tanjun.abc.Context) -> None:
 @tanjun.as_slash_command("seek", "seek to a specific time in the current song")
 async def seek(ctx: tanjun.abc.Context, time: str) -> None:
     if ctx.guild_id:
+        # This is ugly, rewrite this
         try:
             time_parts = time.split(':')
             if len(time_parts) == 3:
@@ -118,6 +119,16 @@ async def seek(ctx: tanjun.abc.Context, time: str) -> None:
             seek_position = (hours * 3600 + minutes * 60 + seconds) * 1000
             await embed_service.reply_message(ctx, f'Seeking to {time}...')
             await lavalink.seek(ctx.guild_id, seek_position)
+        else:
+            await embed_service.reply_message(ctx, 'Queue empty')
+
+
+@component.with_slash_command
+@tanjun.as_slash_command('current', 'show the current song')
+async def now_playing(ctx: tanjun.abc.Context) -> None:
+    if ctx.guild_id:
+        if queue := await play_service.get_queue(ctx.guild_id):
+            await ctx.respond(embed=embed_service.build_track_embed(queue[0], show_time_remaining=True))
         else:
             await embed_service.reply_message(ctx, 'Queue empty')
 
