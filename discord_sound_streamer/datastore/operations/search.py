@@ -1,9 +1,12 @@
 import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, Dict, Optional
-from discord_sound_streamer.logger import logger
 
-from discord_sound_streamer.datastore.models.search import SearchWaitKey, SearchWaitValue, SearchWaitValue
+from discord_sound_streamer.datastore.models.search import (
+    SearchWaitKey,
+    SearchWaitValue,
+)
+from discord_sound_streamer.logger import logger
 
 # Used for mapping open search result requests to results, can leak if not managed carefully
 
@@ -28,5 +31,4 @@ def set_search_wait_value(key: SearchWaitKey, value: SearchWaitValue) -> None:
 def remove_search_wait_value(key: SearchWaitKey) -> None:
     result = _SEARCH_WAIT_STORE.pop(key, None)
     if result is None:
-        logger.warning(f'Tried to remove a search wait value that was not in the store. Key: {key}')
-
+        logger.warning(f"Tried to remove a search wait value that was not in the store. Key: {key}")

@@ -11,6 +11,7 @@ class SearchWaitValue:
     tracks: List[Track]
     searched_at: datetime
 
+
 # frozen and eq make the class hashable
 @dataclass(frozen=True, eq=True)
 class SearchWaitKey:
