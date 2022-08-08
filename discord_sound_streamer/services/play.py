@@ -1,8 +1,10 @@
+import asyncio
 from typing import List
 
 import tanjun
 from hikari import Snowflake
 from lavaplayer import Track
+from lavaplayer.exceptions import NodeError
 
 from discord_sound_streamer.bot import bot, lavalink
 from discord_sound_streamer.config import CONFIG
@@ -33,7 +35,16 @@ async def play(ctx: tanjun.abc.Context, track: Track) -> None:
                 return
             await bot.update_voice_state(guild.id, user_voice_state.channel_id, self_deaf=True)
             await ctx.respond(embed=embed_service.build_track_embed(track, title="Queueing..."))
-            await lavalink.play(guild.id, track, ctx.author.id)
+            for _ in range(3):
+                try:
+                    await lavalink.play(guild.id, track, ctx.author.id)
+                    return
+                except NodeError:
+                    await asyncio.sleep(0.25)
+                    continue
+            await embed_service.reply_message(ctx, "Could not play for unknown reason. Tell Rex.")
+        else:
+            await embed_service.reply_message(ctx, "You are not in a voice channel!")
 
 
 async def pause_control(ctx: tanjun.abc.Context, pause: bool) -> None:

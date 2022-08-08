@@ -3,11 +3,11 @@ from datetime import datetime
 
 import tanjun
 
-from discord_sound_streamer.bot import lavalink
 from discord_sound_streamer.datastore.models.search import SearchWaitValue
 from discord_sound_streamer.datastore.operations import search as search_operations
 from discord_sound_streamer.datastore.operations.search import SearchWaitKey
 from discord_sound_streamer.services import embed as embed_service
+from discord_sound_streamer.services import lava as lava_service
 from discord_sound_streamer.services import play as play_service
 
 component = tanjun.Component()
@@ -19,7 +19,9 @@ component = tanjun.Component()
 async def search(ctx: tanjun.abc.Context, query: str) -> None:
     if ctx.guild_id:
         key = SearchWaitKey(guild_id=ctx.guild_id, user_id=ctx.author.id)
-        search_results = await lavalink.auto_search_tracks(query)
+
+        # Truncate the search results to 8 because that's the max number of results we can display
+        search_results = await lava_service.search_and_filter_tracks(query, count=8)
         searched_at = datetime.utcnow()
 
         # First, create a search for the guildmember and store it
@@ -29,8 +31,6 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
                 return
 
             if search_results:
-                # Truncate the search results to 8 because that's the max number of results we can display
-                search_results = search_results[:8]
                 data = SearchWaitValue(tracks=search_results, searched_at=searched_at)
                 search_operations.set_search_wait_value(key, data)
                 await ctx.respond(embed=embed_service.build_search_embed(query, search_results))
@@ -55,6 +55,7 @@ async def select(ctx: tanjun.abc.Context, selection: int) -> None:
         async with search_operations.get_search_wait_value(key) as data:
             if data:
                 if 0 < selection <= len(data.tracks):
+                    # TODO investigate filtering age-restricted results here instead of in search (because it's slow)
                     await play_service.play(ctx, data.tracks[selection - 1])
                     search_operations.remove_search_wait_value(key)
                 else:

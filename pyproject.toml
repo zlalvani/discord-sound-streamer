@@ -15,6 +15,8 @@ pydantic = "^1.9.0"
 python-dotenv = "^0.19.2"
 lavaplayer = "^1.0.8a0"
 types-retry = "^0.9.5"
+python-youtube = "^0.8.2"
+httpx = "^0.23.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0.0"
@@ -40,12 +42,12 @@ warn_no_return = true
 # disallow_untyped_calls = true
 # disallow_untyped_defs = true
 # disallow_incomplete_defs = true
-# check_untyped_defs = true
+check_untyped_defs = true
 # disallow_untyped_decorators = true
 # no_implicit_optional = true
 # warn_redundant_casts = true
 # warn_return_any = true
-# strict_equality = true
+strict_equality = true
 
 [tool.black]
 line_length = 100

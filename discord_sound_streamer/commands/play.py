@@ -4,6 +4,7 @@ from lavaplayer import TrackStartEvent
 from discord_sound_streamer.bot import bot, lavalink
 from discord_sound_streamer.datastore.operations import commands as commands_operations
 from discord_sound_streamer.services import embed as embed_service
+from discord_sound_streamer.services import lava as lava_service
 from discord_sound_streamer.services import play as play_service
 
 component = tanjun.Component()
@@ -14,7 +15,8 @@ component = tanjun.Component()
 @tanjun.as_slash_command("play", "play audio")
 async def play(ctx: tanjun.abc.Context, name: str) -> None:
     if ctx.guild_id:
-        result = await lavalink.auto_search_tracks(name)
+        # TODO Support playlists
+        result = await lava_service.search_and_filter_tracks(name)
         if result:
             await play_service.play(ctx, result[0])
         else:
