@@ -47,7 +47,7 @@ async def handle_message_create(event: hikari.MessageCreateEvent) -> None:
             await event.message.respond(attachment=fd.read())
 
 
-client.load_modules("discord_sound_streamer.commands")
+client.load_modules("discord_sound_streamer.commands.__init__")
 client.load_modules("discord_sound_streamer.commands.play")
 client.load_modules("discord_sound_streamer.commands.search")
 
@@ -70,3 +70,7 @@ def start():
     asyncio.get_event_loop_policy().get_event_loop().create_task(loop())
 
     bot.run()
+
+
+if __name__ == "__main__":
+    start()
