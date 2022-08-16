@@ -9,6 +9,7 @@ from discord_sound_streamer.datastore.operations.search import SearchWaitKey
 from discord_sound_streamer.services import embed as embed_service
 from discord_sound_streamer.services import lava as lava_service
 from discord_sound_streamer.services import play as play_service
+from discord_sound_streamer.services import youtube as youtube_service
 
 component = tanjun.Component()
 
@@ -21,7 +22,7 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
         key = SearchWaitKey(guild_id=ctx.guild_id, user_id=ctx.author.id)
 
         # Truncate the search results to 8 because that's the max number of results we can display
-        search_results = await lava_service.search_and_filter_tracks(query, count=8)
+        search_results = (await lava_service.search(query))[:8]
         searched_at = datetime.utcnow()
 
         # First, create a search for the guildmember and store it
@@ -56,6 +57,11 @@ async def select(ctx: tanjun.abc.Context, selection: int) -> None:
             if data:
                 if 0 < selection <= len(data.tracks):
                     # TODO investigate filtering age-restricted results here instead of in search (because it's slow)
+                    track = data.tracks[selection - 1]
+                    if await youtube_service.is_age_restricted(track):
+                        await embed_service.reply_message(
+                            ctx, "Selection is age restricted. Please try another. "
+                        )
                     await play_service.play(ctx, data.tracks[selection - 1])
                     search_operations.remove_search_wait_value(key)
                 else:

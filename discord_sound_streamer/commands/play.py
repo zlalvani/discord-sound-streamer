@@ -16,9 +16,9 @@ component = tanjun.Component()
 async def play(ctx: tanjun.abc.Context, name: str) -> None:
     if ctx.guild_id:
         # TODO Support playlists
-        result = await lava_service.search_and_filter_tracks(name)
+        result = await lava_service.get_first_result(name)
         if result:
-            await play_service.play(ctx, result[0])
+            await play_service.play(ctx, result)
         else:
             await embed_service.reply_message(ctx, f"No results found for {name}...")
 

@@ -2,7 +2,7 @@ import os
 from typing import Optional
 
 from dotenv import dotenv_values
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 
 
 class Config(BaseModel):
