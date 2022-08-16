@@ -73,7 +73,7 @@ def build_queue_embed(tracks: List[Track]) -> Embed:
 def build_search_embed(query: str, search_results: List[Track]) -> Embed:
     embed = Embed(title="Search Results", description=f'Results for "{query}"', color=0x000000)
     _apply_track_list_to_embed(embed, search_results)
-    embed.set_footer(text=f"Use /select <number> to select a track")
+    embed.set_footer(text=f"Use /select <number> to select a track in the next 30 seconds")
     return embed
 
 
