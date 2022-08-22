@@ -1,14 +1,20 @@
-import asyncio
 from typing import List
 
 import tanjun
-from hikari import Snowflake
-from lavaplayer import Track
+from hikari import Guild, Snowflake
+from lavaplayer import PlayList, Track
 from lavaplayer.exceptions import NodeError
+from tenacity import (
+    AsyncRetrying,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_fixed,
+)
 
 from discord_sound_streamer.bot import bot, lavalink
 from discord_sound_streamer.config import CONFIG
 from discord_sound_streamer.services import embed as embed_service
+from discord_sound_streamer.services import youtube as youtube_service
 
 
 async def get_queue(guild_id: Snowflake) -> List[Track]:
@@ -17,34 +23,47 @@ async def get_queue(guild_id: Snowflake) -> List[Track]:
     return []
 
 
-async def play(ctx: tanjun.abc.Context, track: Track) -> None:
+async def play_track(ctx: tanjun.abc.Context, track: Track) -> None:
     guild = await ctx.fetch_guild()
     if guild:
-        queue = await get_queue(guild.id)
-        user_voice_state = guild.get_voice_state(ctx.author.id)
-        bot_voice_state = guild.get_voice_state(CONFIG.BOT_ID)
-        if user_voice_state:
-            if (
-                queue
-                and bot_voice_state
-                and bot_voice_state.channel_id != user_voice_state.channel_id
-            ):
-                await embed_service.reply_message(
-                    ctx, "Already playing a track in another channel."
-                )
-                return
-            await bot.update_voice_state(guild.id, user_voice_state.channel_id, self_deaf=True)
-            await ctx.respond(embed=embed_service.build_track_embed(track, title="Queueing..."))
-            for _ in range(3):
-                try:
-                    await lavalink.play(guild.id, track, ctx.author.id)
-                    return
-                except NodeError:
-                    await asyncio.sleep(0.25)
-                    continue
-            await embed_service.reply_message(ctx, "Could not play for unknown reason. Tell Rex.")
+        await _play_tracks(ctx, guild, [track])
+
+
+async def play_playlist(ctx: tanjun.abc.Context, playlist: PlayList) -> None:
+    guild = await ctx.fetch_guild()
+    if guild:
+        await _play_tracks(ctx, guild, await youtube_service.filter_age_restricted(playlist.tracks))
+
+
+async def _play_tracks(ctx: tanjun.abc.Context, guild: Guild, tracks: List[Track]) -> None:
+    queue = await get_queue(guild.id)
+    user_voice_state = guild.get_voice_state(ctx.author.id)
+    bot_voice_state = guild.get_voice_state(CONFIG.BOT_ID)
+    if user_voice_state:
+        if queue and bot_voice_state and bot_voice_state.channel_id != user_voice_state.channel_id:
+            await embed_service.reply_message(ctx, "Already playing a track in another channel.")
+            return
+
+        await bot.update_voice_state(guild.id, user_voice_state.channel_id, self_deaf=True)
+
+        if len(tracks) == 1:
+            await ctx.respond(embed=embed_service.build_track_embed(tracks[0], title="Queueing..."))
         else:
-            await embed_service.reply_message(ctx, "You are not in a voice channel!")
+            await ctx.respond(embed=embed_service.build_playlist_embed(tracks))
+
+        for track in tracks:
+            # There can be a race condition where the bot hasn't yet joined the voice channel
+            # before attempting to play. In that case, we retry.
+            for attempt in AsyncRetrying(
+                retry=retry_if_exception_type(NodeError),
+                stop=stop_after_attempt(3),
+                wait=wait_fixed(0.25),
+            ):
+                with attempt:
+                    await lavalink.play(guild.id, track, ctx.author.id)
+
+    else:
+        await embed_service.reply_message(ctx, "You are not in a voice channel!")
 
 
 async def pause_control(ctx: tanjun.abc.Context, pause: bool) -> None:
