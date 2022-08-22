@@ -22,7 +22,7 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
         key = SearchWaitKey(guild_id=ctx.guild_id, user_id=ctx.author.id)
 
         # Truncate the search results to 8 because that's the max number of results we can display
-        search_results = (await lava_service.search(query))[:8]
+        search_results = (await lava_service.get_tracks(query))[:8]
         searched_at = datetime.utcnow()
 
         # First, create a search for the guildmember and store it
@@ -62,7 +62,7 @@ async def select(ctx: tanjun.abc.Context, selection: int) -> None:
                         await embed_service.reply_message(
                             ctx, "Selection is age restricted. Please try another. "
                         )
-                    await play_service.play(ctx, data.tracks[selection - 1])
+                    await play_service.play_track(ctx, data.tracks[selection - 1])
                     search_operations.remove_search_wait_value(key)
                 else:
                     await embed_service.reply_message(

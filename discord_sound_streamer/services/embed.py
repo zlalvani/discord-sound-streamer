@@ -70,6 +70,20 @@ def build_queue_embed(tracks: List[Track]) -> Embed:
     return embed
 
 
+def build_playlist_embed(tracks: List[Track]) -> Embed:
+    embed = Embed(title="Queuing playlist...", color=0x000000)
+    if tracks:
+        _apply_track_list_to_embed(embed, tracks[:8])
+        if len(tracks) > 8:
+            embed.add_field(name="...", value=f"{len(tracks) - 8} more items", inline=False)
+        embed.set_footer(
+            text=f'Total playlist time: {str(timedelta(milliseconds=sum(t.length - (t.position * 1000) for t in tracks))).split(".")[0]}'
+        )
+    else:
+        embed.description = "No tracks in playlist"
+    return embed
+
+
 def build_search_embed(query: str, search_results: List[Track]) -> Embed:
     embed = Embed(title="Search Results", description=f'Results for "{query}"', color=0x000000)
     _apply_track_list_to_embed(embed, search_results)

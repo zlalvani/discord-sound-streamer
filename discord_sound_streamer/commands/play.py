@@ -1,5 +1,5 @@
 import tanjun
-from lavaplayer import TrackStartEvent
+from lavaplayer import PlayList, TrackStartEvent
 
 from discord_sound_streamer.bot import bot, lavalink
 from discord_sound_streamer.datastore.operations import commands as commands_operations
@@ -15,10 +15,15 @@ component = tanjun.Component()
 @tanjun.as_slash_command("play", "play audio")
 async def play(ctx: tanjun.abc.Context, name: str) -> None:
     if ctx.guild_id:
-        # TODO Support playlists
-        result = await lava_service.get_first_result(name)
-        if result:
-            await play_service.play(ctx, result)
+        results = await lava_service.search(name)
+
+        if isinstance(results, PlayList):
+            await play_service.play_playlist(ctx, results)
+            return
+
+        track = await lava_service.get_first_valid_track(results)
+        if track:
+            await play_service.play_track(ctx, track)
         else:
             await embed_service.reply_message(ctx, f"No results found for {name}...")
 
@@ -95,7 +100,7 @@ async def shuffle(ctx: tanjun.abc.Context) -> None:
 @tanjun.as_slash_command("seek", "seek to a specific time in the current song")
 async def seek(ctx: tanjun.abc.Context, time: str) -> None:
     if ctx.guild_id:
-        # This is ugly, rewrite this
+        # TODO This is ugly, rewrite this with a time parsing library
         try:
             time_parts = time.split(":")
             if len(time_parts) == 3:
