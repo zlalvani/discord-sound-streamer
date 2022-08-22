@@ -28,7 +28,7 @@ def _apply_track_list_to_embed(embed: Embed, tracks: List[Track]) -> None:
         embed.add_field(
             name=f"{ordinal}. {track.title}", value=_build_track_link(track), inline=True
         )
-        embed.add_field(name="Author", value=track.author, inline=True)
+        embed.add_field(name="Uploader", value=track.author, inline=True)
         embed.add_field(name="Length", value=str(timedelta(milliseconds=track.length)), inline=True)
 
 
@@ -42,7 +42,7 @@ def build_track_embed(
 ) -> Embed:
     embed = Embed(title=title, color=0x000000)
     embed.add_field(name="Title", value=track.title, inline=True)
-    embed.add_field(name="Author", value=track.author, inline=True)
+    embed.add_field(name="Uploader", value=track.author, inline=True)
     embed.add_field(
         name="Remaining" if show_time_remaining else "Length",
         value=str(
