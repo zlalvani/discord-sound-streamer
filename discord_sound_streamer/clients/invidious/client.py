@@ -35,7 +35,7 @@ async def _request(
             url,
             headers=headers,
             content=payload.json(exclude_unset=True) if payload else None,
-            timeout=Timeout(connect=5, read=10),
+            timeout=Timeout(5, connect=5, read=10),
         )
         response.raise_for_status()
         return response.text
