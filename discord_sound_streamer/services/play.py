@@ -6,6 +6,7 @@ from lavaplayer import PlayList, Track
 from lavaplayer.exceptions import NodeError
 from tenacity import (
     AsyncRetrying,
+    RetryError,
     retry_if_exception_type,
     stop_after_attempt,
     wait_fixed,
@@ -54,13 +55,16 @@ async def _play_tracks(ctx: tanjun.abc.Context, guild: Guild, tracks: List[Track
         for track in tracks:
             # There can be a race condition where the bot hasn't yet joined the voice channel
             # before attempting to play. In that case, we retry.
-            for attempt in AsyncRetrying(
-                retry=retry_if_exception_type(NodeError),
-                stop=stop_after_attempt(3),
-                wait=wait_fixed(0.25),
-            ):
-                with attempt:
-                    await lavalink.play(guild.id, track, ctx.author.id)
+            try:
+                async for attempt in AsyncRetrying(
+                    retry=retry_if_exception_type(NodeError),
+                    stop=stop_after_attempt(3),
+                    wait=wait_fixed(0.25),
+                ):
+                    with attempt:
+                        await lavalink.play(guild.id, track, ctx.author.id)
+            except RetryError:
+                pass
 
     else:
         await embed_service.reply_message(ctx, "You are not in a voice channel!")
