@@ -1,11 +1,9 @@
-import os
 from typing import Optional
 
-from dotenv import dotenv_values
-from pydantic import BaseModel
+from pydantic import BaseSettings
 
 
-class Config(BaseModel):
+class Settings(BaseSettings):
     BOT_TOKEN: str
     BOT_ID: int
     GUILD_ID: Optional[int]
@@ -19,5 +17,8 @@ class Config(BaseModel):
     INACTIVE_TIMEOUT: int = 300
     USE_INVIDIOUS_AGE_RESTRICTED: bool = True
 
+    class Config:
+        case_sensitive = True
 
-CONFIG = Config.parse_obj({**dotenv_values(".env"), **os.environ})
+
+CONFIG = Settings(_env_file=".env")
