@@ -11,7 +11,7 @@ component = tanjun.Component()
 
 
 @component.with_slash_command
-@tanjun.with_str_slash_option("name", "search term")
+@tanjun.with_str_slash_option("name", "search term or URL")
 @tanjun.as_slash_command("play", "play audio")
 async def play(ctx: tanjun.abc.Context, name: str) -> None:
     if ctx.guild_id:

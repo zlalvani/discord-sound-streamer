@@ -1,4 +1,5 @@
 from typing import List, Optional
+from urllib.parse import urlparse
 
 from lavaplayer import PlayList, Track
 
@@ -18,6 +19,12 @@ async def get_and_filter_tracks(query: str, *, count: int = 1) -> List[Track]:
 
 
 async def search(query: str) -> List[Track] | PlayList:
+    # Transform youtube shorts URLs into normal youtube video URLs because lavaplayer doesn't like them
+    # TODO Replace this with something more robust once dependencies are updated
+    parsed = urlparse(query)
+    if parsed.scheme and "youtube.com" in parsed.netloc and "/shorts/" in parsed.path:
+        query = f"https://www.youtube.com/watch?v={parsed.path.split('/')[-1]}"
+
     result = await lavalink.auto_search_tracks(query)
 
     if result is None:
