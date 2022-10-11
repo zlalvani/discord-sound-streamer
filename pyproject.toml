@@ -11,7 +11,7 @@ start = "discord_sound_streamer.bot:start"
 python = "~3.10"
 hikari = "2.0.0.dev110"
 hikari-tanjun = "2.5.4a1"
-pydantic = "^1.9.0"
+pydantic = { extras = ["dotenv"], version = "^1.10.2" }
 lavaplayer = "1.0.8a0"
 types-retry = "^0.9.5"
 python-youtube = "^0.8.2"
