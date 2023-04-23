@@ -9,7 +9,6 @@ from lavaplayer import LavalinkClient
 
 from discord_sound_streamer.config import CONFIG
 from discord_sound_streamer.logger import logger
-from discord_sound_streamer.websocket import WS
 
 bot = hikari.GatewayBot(token=CONFIG.BOT_TOKEN)
 
