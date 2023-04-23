@@ -1,5 +1,9 @@
 services:
   lavalink:
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     build:  lavalink/.
     hostname: lavalink
     volumes:
@@ -7,6 +11,10 @@ services:
     ports:
       - "443:443"
   discord_sound_streamer:
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     build: .
     environment:
       - WAIT_FOR_LAVALINK=True
