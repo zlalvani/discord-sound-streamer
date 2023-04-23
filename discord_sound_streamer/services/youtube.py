@@ -16,7 +16,7 @@ async def is_age_restricted(track: Track) -> bool:
     Depending on the server, the Invidious API can be slow.
     """
 
-    if track.sourceName != "youtube":
+    if track.source_name != "youtube":
         return False
 
     if CONFIG.USE_INVIDIOUS_AGE_RESTRICTED:
@@ -46,7 +46,7 @@ async def _is_age_restricted_youtube(track: Track) -> bool:
 async def filter_age_restricted(tracks: List[Track]) -> List[Track]:
 
     # TODO bug: don't filter all non youtube here
-    tracks = [t for t in tracks if t.sourceName == "youtube"]
+    tracks = [t for t in tracks if t.source_name == "youtube"]
 
     if CONFIG.USE_INVIDIOUS_AGE_RESTRICTED:
         return await _filter_age_restricted_invidious(tracks)

@@ -917,7 +917,7 @@ test = ["hatch", "ipykernel", "jupyterlab-server", "openapi-spec-validator (>=0.
 
 [[package]]
 name = "lavaplayer"
-version = "1.0.8a0"
+version = "1.0.10a0"
 description = "Its a lavalink nodes manger to make a music bots for discord with python."
 category = "main"
 optional = false
@@ -1669,14 +1669,6 @@ docs = ["myst-parser", "pydata-sphinx-theme", "sphinx"]
 test = ["argcomplete (>=2.0)", "pre-commit", "pytest", "pytest-mock"]
 
 [[package]]
-name = "types-retry"
-version = "0.9.9.3"
-description = "Typing stubs for retry"
-category = "main"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "typing-extensions"
 version = "4.5.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -1817,7 +1809,7 @@ test = ["mypy", "pre-commit", "pytest", "pytest-asyncio", "websockets (>=10.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.10"
-content-hash = "bceb103de3208a2097ad9101f8c507d1a488a35a8f794b41e6734408a6554e10"
+content-hash = "9828a6edce45a8c5595c6f632a6ae848e064c32c1f92ad7e654ea73e05f2c1fa"
 
 [metadata.files]
 aiofiles = []
@@ -1896,10 +1888,7 @@ jupyter-ydoc = []
 jupyterlab = []
 jupyterlab-pygments = []
 jupyterlab-server = []
-lavaplayer = [
-    {file = "lavaplayer-1.0.8a0-py3-none-any.whl", hash = "sha256:d960a5d3d3a2fa733565f164766762be2d79fd0eaa3be93dd284296097ab5e1d"},
-    {file = "lavaplayer-1.0.8a0.tar.gz", hash = "sha256:93036bb7f218ec98b1016760935a58afe61925dd40c1c3fa4294ce26f18e6c81"},
-]
+lavaplayer = []
 markupsafe = []
 marshmallow = []
 marshmallow-enum = []
@@ -2024,7 +2013,6 @@ tomli = [
 ]
 tornado = []
 traitlets = []
-types-retry = []
 typing-extensions = []
 typing-inspect = []
 uri-template = []

@@ -56,7 +56,7 @@ def start():
     if CONFIG.WAIT_FOR_LAVALINK:
         time.sleep(15)
 
-    lavalink._ws = WS(lavalink._ws)
+    # lavalink._ws = WS(lavalink._ws)
     lavalink.connect()
 
     # Do this here to avoid circular import problems
