@@ -9,11 +9,10 @@ start = "discord_sound_streamer.bot:start"
 
 [tool.poetry.dependencies]
 python = "~3.10"
-hikari = "2.0.0.dev110"
-hikari-tanjun = "2.5.4a1"
+hikari = "2.0.0.dev118"
+hikari-tanjun = "2.13.0"
 pydantic = { extras = ["dotenv"], version = "^1.10.2" }
-lavaplayer = "1.0.8a0"
-types-retry = "^0.9.5"
+lavaplayer = "1.0.10a"
 python-youtube = "^0.8.2"
 httpx = "^0.23.0"
 tenacity = "^8.0.1"

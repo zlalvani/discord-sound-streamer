@@ -14,6 +14,7 @@ from tenacity import (
 
 from discord_sound_streamer.bot import bot, lavalink
 from discord_sound_streamer.config import CONFIG
+from discord_sound_streamer.logger import logger
 from discord_sound_streamer.services import embed as embed_service
 from discord_sound_streamer.services import youtube as youtube_service
 
@@ -67,7 +68,9 @@ async def _play_tracks(ctx: tanjun.abc.Context, guild: Guild, tracks: List[Track
             ):
                 with attempt:
                     await lavalink.play(guild.id, track, ctx.author.id)
-        except RetryError:
+        except RetryError as re:
+            logger.info("foo")
+            logger.exception(re)
             pass
 
 
