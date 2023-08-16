@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 
 import tanjun
 from hikari import Embed
-from lavaplayer import Track
+from lavaplay import Track
 
 _DOMAIN_TITLES = {
     "youtube": "YouTube",

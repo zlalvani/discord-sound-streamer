@@ -1,7 +1,7 @@
 import asyncio
 from typing import List
 
-from lavaplayer import Track
+from lavaplay import Track
 from pyyoutube import Api, Video, VideoListResponse
 
 from discord_sound_streamer.clients.invidious import client as invidious_client

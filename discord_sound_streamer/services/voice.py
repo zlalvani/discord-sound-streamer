@@ -20,4 +20,5 @@ async def leave_inactive_voice_channels() -> None:
                     continue
                 logger.info(f"Leaving inactive voice channel {guild_id}")
                 await bot.update_voice_state(guild_id, None)
+                play_service.get_player(guild_id).destroy()
                 commands_operations.remove_last_command(guild_id)
