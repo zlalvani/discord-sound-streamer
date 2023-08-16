@@ -1,9 +1,9 @@
 from typing import List, Optional
 from urllib.parse import urlparse
 
-from lavaplayer import PlayList, Track
+from lavaplay import PlayList, Track
 
-from discord_sound_streamer.bot import lavalink
+from discord_sound_streamer.bot import lavalink_node
 from discord_sound_streamer.services import youtube as youtube_service
 
 
@@ -25,7 +25,7 @@ async def search(query: str) -> List[Track] | PlayList:
     if parsed.scheme and "youtube.com" in parsed.netloc and "/shorts/" in parsed.path:
         query = f"https://www.youtube.com/watch?v={parsed.path.split('/')[-1]}"
 
-    result = await lavalink.auto_search_tracks(query)
+    result = await lavalink_node.auto_search_tracks(query)
 
     if result is None:
         return []

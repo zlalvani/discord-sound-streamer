@@ -5,7 +5,7 @@ import time
 
 import hikari
 import tanjun
-from lavaplayer import LavalinkClient
+from lavaplay.client import Lavalink
 
 from discord_sound_streamer.config import CONFIG
 from discord_sound_streamer.logger import logger
@@ -16,25 +16,33 @@ client = tanjun.Client.from_gateway_bot(
     bot, mention_prefix=True, declare_global_commands=CONFIG.GUILD_ID if CONFIG.GUILD_ID else False
 )
 
-lavalink = LavalinkClient(
+lavalink = Lavalink()
+
+lavalink_node = lavalink.create_node(
     host=CONFIG.LAVALINK_HOST,  # Lavalink host
     port=CONFIG.LAVALINK_PORT,  # Lavalink port
     password=CONFIG.LAVALINK_PASSWORD,  # Lavalink password
     user_id=CONFIG.BOT_ID,  # Lavalink bot id
-    is_ssl=False,
+    ssl=False,
 )
 
 # On voice state update the bot will update the lavalink node
 @bot.listen()
 async def voice_state_update(event: hikari.VoiceStateUpdateEvent) -> None:
-    await lavalink.raw_voice_state_update(
-        event.guild_id, event.state.user_id, event.state.session_id, event.state.channel_id
-    )
+    player = lavalink_node.get_player(event.guild_id)
+
+    if player:
+        await player.raw_voice_state_update(
+            event.state.user_id, event.state.session_id, event.state.channel_id
+        )
 
 
 @bot.listen()
 async def voice_server_update(event: hikari.VoiceServerUpdateEvent) -> None:
-    await lavalink.raw_voice_server_update(event.guild_id, event.endpoint, event.token)
+    player = lavalink_node.get_player(event.guild_id)
+
+    if player:
+        await player.raw_voice_server_update(event.endpoint, event.token)
 
 
 @bot.listen()
@@ -51,11 +59,14 @@ client.load_modules("discord_sound_streamer.commands.play")
 client.load_modules("discord_sound_streamer.commands.search")
 
 
+@bot.listen()
+async def on_ready(event: hikari.ShardReadyEvent) -> None:
+    lavalink_node.connect()
+
+
 def start():
     if CONFIG.WAIT_FOR_LAVALINK:
         time.sleep(15)
-
-    lavalink.connect()
 
     # Do this here to avoid circular import problems
     from discord_sound_streamer.services.voice import leave_inactive_voice_channels

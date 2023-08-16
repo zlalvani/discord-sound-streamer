@@ -1,7 +1,7 @@
 import tanjun
-from lavaplayer import PlayList, TrackStartEvent
+from lavaplay import PlayList, TrackStartEvent
 
-from discord_sound_streamer.bot import bot, lavalink
+from discord_sound_streamer.bot import bot, lavalink_node
 from discord_sound_streamer.datastore.operations import commands as commands_operations
 from discord_sound_streamer.services import embed as embed_service
 from discord_sound_streamer.services import lava as lava_service
@@ -33,18 +33,17 @@ async def play(ctx: tanjun.abc.Context, name: str) -> None:
 @tanjun.as_slash_command("skip", "skip the current song")
 async def skip(ctx: tanjun.abc.Context, selection: int) -> None:
     if ctx.guild_id:
-        guild_node = await lavalink.get_guild_node(ctx.guild_id)
-        if guild_node and guild_node.queue:
+        player = play_service.get_player(ctx.guild_id)
+        if player.queue:
             if selection == 1:
-                await embed_service.reply_message(ctx, f"Skipping {guild_node.queue[0].title}...")
-                await lavalink.skip(ctx.guild_id)
+                await embed_service.reply_message(ctx, f"Skipping {player.queue[0].title}...")
+                await player.skip()
             else:
                 try:
                     await embed_service.reply_message(
-                        ctx, f"Skipping {guild_node.queue[selection - 1].title}..."
+                        ctx, f"Skipping {player.queue[selection - 1].title}..."
                     )
-                    guild_node.queue.pop(selection - 1)
-                    await lavalink.set_guild_node(ctx.guild_id, guild_node)
+                    player.remove(selection - 1)
                 except IndexError:
                     await embed_service.reply_message(ctx, f"Selection {selection} not in queue")
         else:
@@ -76,8 +75,9 @@ async def queue(ctx: tanjun.abc.Context) -> None:
 async def clear(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
         if await play_service.get_queue(ctx.guild_id):
+            player = play_service.get_player(ctx.guild_id)
             await embed_service.reply_message(ctx, f"Clearing queue...")
-            await lavalink.stop(ctx.guild_id)
+            await player.stop()
         else:
             await embed_service.reply_message(ctx, "Queue empty")
 
@@ -87,10 +87,11 @@ async def clear(ctx: tanjun.abc.Context) -> None:
 async def shuffle(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
         if await play_service.get_queue(ctx.guild_id):
+            player = play_service.get_player(ctx.guild_id)
             await embed_service.reply_message(ctx, f"Shuffling queue...")
-            node = await lavalink.shuffle(ctx.guild_id)
-            if node.queue:
-                await ctx.respond(embed=embed_service.build_queue_embed(node.queue))
+            queue = player.shuffle()
+            if queue:
+                await ctx.respond(embed=embed_service.build_queue_embed(queue))
         else:
             await embed_service.reply_message(ctx, "Queue empty")
 
@@ -126,9 +127,10 @@ async def seek(ctx: tanjun.abc.Context, time: str) -> None:
             return
 
         if await play_service.get_queue(ctx.guild_id):
+            player = play_service.get_player(ctx.guild_id)
             seek_position = (hours * 3600 + minutes * 60 + seconds) * 1000
             await embed_service.reply_message(ctx, f"Seeking to {time}...")
-            await lavalink.seek(ctx.guild_id, seek_position)
+            await player.seek(seek_position)
         else:
             await embed_service.reply_message(ctx, "Queue empty")
 
@@ -145,7 +147,7 @@ async def now_playing(ctx: tanjun.abc.Context) -> None:
             await embed_service.reply_message(ctx, "Queue empty")
 
 
-@lavalink.listen(TrackStartEvent)
+@lavalink_node.listen(TrackStartEvent)
 async def handle_track_start_event(event: TrackStartEvent) -> None:
     async with commands_operations.get_last_command(event.guild_id) as command:
         if command:

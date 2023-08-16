@@ -2,8 +2,9 @@ from typing import List
 
 import tanjun
 from hikari import Guild, Snowflake
-from lavaplayer import PlayList, Track
-from lavaplayer.exceptions import NodeError
+from lavaplay import PlayList, Track
+from lavaplay.exceptions import NodeError
+from lavaplay.player import Player
 from tenacity import (
     AsyncRetrying,
     RetryError,
@@ -12,17 +13,25 @@ from tenacity import (
     wait_fixed,
 )
 
-from discord_sound_streamer.bot import bot, lavalink
+from discord_sound_streamer.bot import bot, lavalink_node
 from discord_sound_streamer.config import CONFIG
 from discord_sound_streamer.logger import logger
 from discord_sound_streamer.services import embed as embed_service
 from discord_sound_streamer.services import youtube as youtube_service
 
 
+def get_player(guild_id: Snowflake) -> Player:
+    player = lavalink_node.get_player(guild_id)
+
+    if not player:
+        player = lavalink_node.create_player(guild_id)
+
+    return player if player else None
+
+
 async def get_queue(guild_id: Snowflake) -> List[Track]:
-    if await lavalink.get_guild_node(guild_id):
-        return await lavalink.queue(guild_id)
-    return []
+    player = get_player(guild_id)
+    return player.queue
 
 
 async def play_track(ctx: tanjun.abc.Context, track: Track) -> None:
@@ -39,6 +48,8 @@ async def play_playlist(ctx: tanjun.abc.Context, playlist: PlayList) -> None:
 
 async def _play_tracks(ctx: tanjun.abc.Context, guild: Guild, tracks: List[Track]) -> None:
     queue = await get_queue(guild.id)
+    player = get_player(guild.id)
+
     user_voice_state = guild.get_voice_state(ctx.author.id)
     bot_voice_state = guild.get_voice_state(CONFIG.BOT_ID)
 
@@ -67,19 +78,19 @@ async def _play_tracks(ctx: tanjun.abc.Context, guild: Guild, tracks: List[Track
                 wait=wait_fixed(0.25),
             ):
                 with attempt:
-                    await lavalink.play(guild.id, track, ctx.author.id)
+                    await player.play(track, ctx.author.id)
         except RetryError as re:
-            logger.info("foo")
             logger.exception(re)
-            pass
 
 
 async def pause_control(ctx: tanjun.abc.Context, pause: bool) -> None:
     if ctx.guild_id:
-        if await lavalink.get_guild_node(ctx.guild_id) and (queue := await get_queue(ctx.guild_id)):
+        player = get_player(ctx.guild_id)
+
+        if queue := await get_queue(ctx.guild_id):
             await embed_service.reply_message(
                 ctx, f'{"Pausing" if pause else "Resuming"} {queue[0].title}...'
             )
-            await lavalink.pause(ctx.guild_id, pause)
+            await player.pause(pause)
         else:
             await embed_service.reply_message(ctx, "Queue empty")

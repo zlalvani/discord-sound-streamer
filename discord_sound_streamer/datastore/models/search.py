@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List
 
 from hikari import Snowflake
-from lavaplayer import Track
+from lavaplay import Track
 
 
 @dataclass
