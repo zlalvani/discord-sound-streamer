@@ -2,6 +2,7 @@ import asyncio
 import os
 import random
 import time
+from asyncio import StreamReader, StreamWriter
 
 import hikari
 import tanjun
@@ -64,6 +65,19 @@ async def on_ready(event: hikari.ShardReadyEvent) -> None:
     lavalink_node.connect()
 
 
+async def health_check_handler(_: StreamReader, writer: StreamWriter) -> None:
+    writer.write("healthy".encode("utf8"))
+    await writer.drain()
+    writer.close()
+
+
+async def start_health_check_server() -> None:
+    # Start TCP server
+    server = await asyncio.start_server(health_check_handler, "0.0.0.0", CONFIG.HEALTH_CHECK_PORT)
+    async with server:
+        await server.serve_forever()
+
+
 def start():
     if CONFIG.WAIT_FOR_LAVALINK:
         time.sleep(15)
@@ -77,6 +91,7 @@ def start():
             await asyncio.sleep(30)
 
     asyncio.get_event_loop_policy().get_event_loop().create_task(loop())
+    asyncio.get_event_loop_policy().get_event_loop().create_task(start_health_check_server())
 
     bot.run()
 

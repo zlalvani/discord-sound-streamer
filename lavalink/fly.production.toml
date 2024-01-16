@@ -1,0 +1,14 @@
+# fly.toml app configuration file generated for lavalink-production on 2024-01-16T00:04:43-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "lavalink-production"
+primary_region = "ewr"
+
+[build]
+
+[[vm]]
+cpu_kind = "shared"
+cpus = 1
+memory_mb = 512

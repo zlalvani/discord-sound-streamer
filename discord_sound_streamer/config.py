@@ -4,13 +4,15 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
+    ENVIRONMENT: str
     BOT_TOKEN: str
     BOT_ID: int
     GUILD_ID: Optional[int]
     YOUTUBE_API_KEY: str
-    INVIDIOUS_URL: str = "https://vid.puffyan.us"
+    HEALTH_CHECK_PORT: int = 1234
+    INVIDIOUS_URL: str = "https://vid.puffyan.us"  # https://iv.ggtyler.dev
     LAVALINK_HOST: str = "localhost"
-    LAVALINK_PORT: int = 443
+    LAVALINK_PORT: int = 40443
     LAVALINK_PASSWORD: str = "youshallnotpass"
     IMAGE_PATH: str = "./assets/image/"
     WAIT_FOR_LAVALINK: bool = False
@@ -21,4 +23,4 @@ class Settings(BaseSettings):
         case_sensitive = True
 
 
-CONFIG = Settings(_env_file=".env")
+CONFIG = Settings(_env_file=".env.local")
