@@ -1,0 +1,22 @@
+# fly.toml app configuration file generated for discord-sound-streamer-production on 2024-01-15T23:19:41-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "discord-sound-streamer-production"
+primary_region = "ewr"
+
+[build]
+
+[checks]
+[checks.tcp_check]
+grace_period = "30s"
+interval = "15s"
+port = 1234
+timeout = "10s"
+type = "tcp"
+
+[[vm]]
+cpu_kind = "shared"
+cpus = 1
+memory_mb = 256
