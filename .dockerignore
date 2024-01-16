@@ -131,8 +131,9 @@ site
 
 **/.vscode
 
-**/assets/image/*
-!**/assets/image/example.png
+# Changes to the /assets directory will be added to the image, uncomment these to disable
+# **/assets/image/*
+# !**/assets/image/example.png
 
 # flyctl launch added from .mypy_cache/.gitignore
 # Automatically created by mypy
