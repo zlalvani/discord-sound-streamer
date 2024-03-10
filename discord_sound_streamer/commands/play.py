@@ -1,11 +1,9 @@
 import tanjun
-from lavaplay import PlayList, TrackStartEvent
 
-from discord_sound_streamer.bot import bot, lavalink_node
-from discord_sound_streamer.datastore.operations import commands as commands_operations
 from discord_sound_streamer.services import embed as embed_service
 from discord_sound_streamer.services import lava as lava_service
 from discord_sound_streamer.services import play as play_service
+from lavalink import LoadType
 
 component = tanjun.Component()
 
@@ -15,13 +13,13 @@ component = tanjun.Component()
 @tanjun.as_slash_command("play", "play audio")
 async def play(ctx: tanjun.abc.Context, name: str) -> None:
     if ctx.guild_id:
-        results = await lava_service.search(name)
+        result = await lava_service.search(name)
 
-        if isinstance(results, PlayList):
-            await play_service.play_playlist(ctx, results)
+        if result.load_type == LoadType.PLAYLIST:
+            await play_service.play_playlist(ctx, result.tracks)
             return
 
-        track = await lava_service.get_first_valid_track(results)
+        track = await lava_service.get_first_valid_track(result.tracks)
         if track:
             await play_service.play_track(ctx, track)
         else:
@@ -43,7 +41,7 @@ async def skip(ctx: tanjun.abc.Context, selection: int) -> None:
                     await embed_service.reply_message(
                         ctx, f"Skipping {player.queue[selection - 1].title}..."
                     )
-                    player.remove(selection - 1)
+                    player.queue.pop(selection - 1)
                 except IndexError:
                     await embed_service.reply_message(ctx, f"Selection {selection} not in queue")
         else:
@@ -88,10 +86,12 @@ async def shuffle(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
         if await play_service.get_queue(ctx.guild_id):
             player = play_service.get_player(ctx.guild_id)
-            await embed_service.reply_message(ctx, f"Shuffling queue...")
-            queue = player.shuffle()
-            if queue:
-                await ctx.respond(embed=embed_service.build_queue_embed(queue))
+            await embed_service.reply_message(
+                ctx, f"{'Disabling' if player.shuffle else 'Enabling'} shuffle..."
+            )
+            player.set_shuffle(not player.shuffle)
+            if player.queue:
+                await ctx.respond(embed=embed_service.build_queue_embed(player.queue))
         else:
             await embed_service.reply_message(ctx, "Queue empty")
 
@@ -145,15 +145,6 @@ async def now_playing(ctx: tanjun.abc.Context) -> None:
             )
         else:
             await embed_service.reply_message(ctx, "Queue empty")
-
-
-@lavalink_node.listen(TrackStartEvent)
-async def handle_track_start_event(event: TrackStartEvent) -> None:
-    async with commands_operations.get_last_command(event.guild_id) as command:
-        if command:
-            await bot.rest.create_message(
-                command.channel_id, embed=embed_service.build_track_embed(event.track)
-            )
 
 
 loader = component.make_loader()

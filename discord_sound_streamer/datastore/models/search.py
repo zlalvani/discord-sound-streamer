@@ -3,12 +3,14 @@ from datetime import datetime
 from typing import List
 
 from hikari import Snowflake
-from lavaplay import Track
+
+# from lavaplay import Track
+from lavalink import AudioTrack
 
 
 @dataclass
 class SearchWaitValue:
-    tracks: List[Track]
+    tracks: List[AudioTrack]
     searched_at: datetime
 
 
