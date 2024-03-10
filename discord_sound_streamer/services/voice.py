@@ -15,8 +15,8 @@ async def leave_inactive_voice_channels() -> None:
                 last_command is None
                 or (datetime.utcnow() - last_command.executed_at).seconds > CONFIG.INACTIVE_TIMEOUT
             ):
-                queue = await play_service.get_queue(guild_id)
-                if queue:
+                player = play_service.get_player(guild_id)
+                if player.is_playing:
                     continue
                 logger.info(f"Leaving inactive voice channel {guild_id}")
                 await bot.update_voice_state(guild_id, None)
