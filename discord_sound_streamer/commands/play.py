@@ -32,18 +32,18 @@ async def play(ctx: tanjun.abc.Context, name: str) -> None:
 async def skip(ctx: tanjun.abc.Context, selection: int) -> None:
     if ctx.guild_id:
         player = play_service.get_player(ctx.guild_id)
-        if player.queue:
-            if selection == 1:
-                await embed_service.reply_message(ctx, f"Skipping {player.queue[0].title}...")
-                await player.skip()
-            else:
-                try:
-                    await embed_service.reply_message(
-                        ctx, f"Skipping {player.queue[selection - 1].title}..."
-                    )
-                    player.queue.pop(selection - 1)
-                except IndexError:
-                    await embed_service.reply_message(ctx, f"Selection {selection} not in queue")
+
+        if selection == 1 and player.current:
+            await embed_service.reply_message(ctx, f"Skipping {player.current.title}...")
+            await player.skip()
+        elif player.queue:
+            try:
+                await embed_service.reply_message(
+                    ctx, f"Skipping {player.queue[selection - 1].title}..."
+                )
+                player.queue.pop(selection - 1)
+            except IndexError:
+                await embed_service.reply_message(ctx, f"Selection {selection} not in queue")
         else:
             await embed_service.reply_message(ctx, "Queue empty")
 
@@ -64,18 +64,23 @@ async def unpause(ctx: tanjun.abc.Context) -> None:
 @tanjun.as_slash_command("queue", "show the current queue")
 async def queue(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
-        queue = await play_service.get_queue(ctx.guild_id)
-        await ctx.respond(embed=embed_service.build_queue_embed(queue))
+        player = play_service.get_player(ctx.guild_id)
+        await ctx.respond(
+            embed=embed_service.build_queue_embed(
+                [*([player.current] if player.current else []), *player.queue]
+            )
+        )
 
 
 @component.with_slash_command
 @tanjun.as_slash_command("clear", "clear the current queue")
 async def clear(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
-        if await play_service.get_queue(ctx.guild_id):
-            player = play_service.get_player(ctx.guild_id)
-            await embed_service.reply_message(ctx, f"Clearing queue...")
+        player = play_service.get_player(ctx.guild_id)
+        if player.is_playing or player.queue:
             await player.stop()
+            player.queue.clear()
+            await embed_service.reply_message(ctx, "Queue cleared")
         else:
             await embed_service.reply_message(ctx, "Queue empty")
 
@@ -84,14 +89,13 @@ async def clear(ctx: tanjun.abc.Context) -> None:
 @tanjun.as_slash_command("shuffle", "shuffle the current queue")
 async def shuffle(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
-        if await play_service.get_queue(ctx.guild_id):
+        player = play_service.get_player(ctx.guild_id)
+        if player.is_playing:
             player = play_service.get_player(ctx.guild_id)
             await embed_service.reply_message(
                 ctx, f"{'Disabling' if player.shuffle else 'Enabling'} shuffle..."
             )
             player.set_shuffle(not player.shuffle)
-            if player.queue:
-                await ctx.respond(embed=embed_service.build_queue_embed(player.queue))
         else:
             await embed_service.reply_message(ctx, "Queue empty")
 
@@ -101,6 +105,8 @@ async def shuffle(ctx: tanjun.abc.Context) -> None:
 @tanjun.as_slash_command("seek", "seek to a specific time in the current song")
 async def seek(ctx: tanjun.abc.Context, time: str) -> None:
     if ctx.guild_id:
+        player = play_service.get_player(ctx.guild_id)
+
         # TODO This is ugly, rewrite this with a time parsing library
         try:
             time_parts = time.split(":")
@@ -126,8 +132,7 @@ async def seek(ctx: tanjun.abc.Context, time: str) -> None:
             await embed_service.reply_message(ctx, "Invalid time format")
             return
 
-        if await play_service.get_queue(ctx.guild_id):
-            player = play_service.get_player(ctx.guild_id)
+        if player.is_playing:
             seek_position = (hours * 3600 + minutes * 60 + seconds) * 1000
             await embed_service.reply_message(ctx, f"Seeking to {time}...")
             await player.seek(seek_position)
@@ -137,11 +142,12 @@ async def seek(ctx: tanjun.abc.Context, time: str) -> None:
 
 @component.with_slash_command
 @tanjun.as_slash_command("current", "show the current song")
-async def now_playing(ctx: tanjun.abc.Context) -> None:
+async def current(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
-        if queue := await play_service.get_queue(ctx.guild_id):
+        player = play_service.get_player(ctx.guild_id)
+        if player.current:
             await ctx.respond(
-                embed=embed_service.build_track_embed(queue[0], show_time_remaining=True)
+                embed=embed_service.build_track_embed(player.current, show_time_remaining=True)
             )
         else:
             await embed_service.reply_message(ctx, "Queue empty")
