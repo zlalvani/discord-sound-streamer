@@ -9,7 +9,7 @@ services:
     volumes:
       - ./lavalink:/home/
     ports:
-      - "443:443"
+      - "40443:40443"
   discord_sound_streamer:
     logging:
       options:

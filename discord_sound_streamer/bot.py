@@ -6,10 +6,12 @@ from asyncio import StreamReader, StreamWriter
 
 import hikari
 import tanjun
-from lavaplay.client import Lavalink
 
+import lavalink
 from discord_sound_streamer.config import CONFIG
+from discord_sound_streamer.datastore.operations import commands as commands_operations
 from discord_sound_streamer.logger import logger
+from discord_sound_streamer.services import embed as embed_service
 
 bot = hikari.GatewayBot(token=CONFIG.BOT_TOKEN)
 
@@ -17,33 +19,70 @@ client = tanjun.Client.from_gateway_bot(
     bot, mention_prefix=True, declare_global_commands=CONFIG.GUILD_ID if CONFIG.GUILD_ID else False
 )
 
-lavalink = Lavalink()
 
-lavalink_node = lavalink.create_node(
-    host=CONFIG.LAVALINK_HOST,  # Lavalink host
-    port=CONFIG.LAVALINK_PORT,  # Lavalink port
-    password=CONFIG.LAVALINK_PASSWORD,  # Lavalink password
-    user_id=CONFIG.BOT_ID,  # Lavalink bot id
-    ssl=False,
-)
+class EventHandler:
+    """Events from the Lavalink server"""
+
+    @lavalink.listener(lavalink.TrackStartEvent)
+    async def track_start(self, event: lavalink.TrackStartEvent):
+        async with commands_operations.get_last_command(
+            hikari.Snowflake(event.player.guild_id)
+        ) as command:
+            if command:
+                await bot.rest.create_message(
+                    command.channel_id, embed=embed_service.build_track_embed(event.track)
+                )
+        logger.info("Track started on guild: %s", event.player.guild_id)
+
+    @lavalink.listener(lavalink.TrackEndEvent)
+    async def track_end(self, event: lavalink.TrackEndEvent):
+        logger.info("Track finished on guild: %s", event.player.guild_id)
+
+    @lavalink.listener(lavalink.TrackExceptionEvent)
+    async def track_exception(self, event: lavalink.TrackExceptionEvent):
+        logger.warning("Track exception event happened on guild: %d", event.player.guild_id)
+
+    @lavalink.listener(lavalink.QueueEndEvent)
+    async def queue_finish(self, event: lavalink.QueueEndEvent):
+        logger.info("Queue finished on guild: %s", event.player.guild_id)
+
+
+lavalink_client = lavalink.Client(CONFIG.BOT_ID)
+
+lavalink_client.add_event_hooks(EventHandler())
 
 # On voice state update the bot will update the lavalink node
 @bot.listen()
 async def voice_state_update(event: hikari.VoiceStateUpdateEvent) -> None:
-    player = lavalink_node.get_player(event.guild_id)
-
-    if player:
-        await player.raw_voice_state_update(
-            event.state.user_id, event.state.session_id, event.state.channel_id
-        )
+    # the data needs to be transformed before being handed down to
+    # voice_update_handler
+    lavalink_data = {
+        "t": "VOICE_STATE_UPDATE",
+        "d": {
+            "guild_id": event.state.guild_id,
+            "user_id": event.state.user_id,
+            "channel_id": event.state.channel_id,
+            "session_id": event.state.session_id,
+        },
+    }
+    await lavalink_client.voice_update_handler(lavalink_data)
 
 
 @bot.listen()
 async def voice_server_update(event: hikari.VoiceServerUpdateEvent) -> None:
-    player = lavalink_node.get_player(event.guild_id)
 
-    if player:
-        await player.raw_voice_server_update(event.endpoint, event.token)
+    # the data needs to be transformed before being handed down to
+    # voice_update_handler
+    if event.endpoint:
+        lavalink_data = {
+            "t": "VOICE_SERVER_UPDATE",
+            "d": {
+                "guild_id": event.guild_id,
+                "endpoint": event.endpoint[6:],  # get rid of wss://
+                "token": event.token,
+            },
+        }
+        await lavalink_client.voice_update_handler(lavalink_data)
 
 
 @bot.listen()
@@ -62,7 +101,13 @@ client.load_modules("discord_sound_streamer.commands.search")
 
 @bot.listen()
 async def on_ready(event: hikari.ShardReadyEvent) -> None:
-    lavalink_node.connect()
+    lavalink_client.add_node(
+        host=CONFIG.LAVALINK_HOST,
+        port=CONFIG.LAVALINK_PORT,
+        password=CONFIG.LAVALINK_PASSWORD,
+        region="us",
+        name="default-node",
+    )
 
 
 async def health_check_handler(_: StreamReader, writer: StreamWriter) -> None:

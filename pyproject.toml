@@ -12,10 +12,10 @@ python = "~3.10"
 hikari = "2.0.0.dev120"
 hikari-tanjun = "2.16.1"
 pydantic = { extras = ["dotenv"], version = "^1.10.2" }
-"lavaplay.py" = "1.0.12a"
 python-youtube = "^0.8.2"
 httpx = "^0.23.0"
 tenacity = "^8.0.1"
+lavalink = "^5.3.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0.0"

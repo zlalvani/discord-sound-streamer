@@ -2,51 +2,42 @@ from typing import List
 
 import tanjun
 from hikari import Guild, Snowflake
-from lavaplay import PlayList, Track
-from lavaplay.exceptions import NodeError
-from lavaplay.player import Player
-from tenacity import (
-    AsyncRetrying,
-    RetryError,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_fixed,
-)
 
-from discord_sound_streamer.bot import bot, lavalink_node
+from discord_sound_streamer.bot import bot, lavalink_client
 from discord_sound_streamer.config import CONFIG
-from discord_sound_streamer.logger import logger
 from discord_sound_streamer.services import embed as embed_service
 from discord_sound_streamer.services import youtube as youtube_service
+from lavalink import AudioTrack, DefaultPlayer
 
 
-def get_player(guild_id: Snowflake) -> Player:
-    player = lavalink_node.get_player(guild_id)
+def get_player(guild_id: Snowflake) -> DefaultPlayer:
+    player = lavalink_client.player_manager.get(guild_id)
 
     if not player:
-        player = lavalink_node.create_player(guild_id)
+        player = lavalink_client.player_manager.create(guild_id)
 
-    return player if player else None
+    return player
 
 
-async def get_queue(guild_id: Snowflake) -> List[Track]:
+async def get_queue(guild_id: Snowflake) -> List[AudioTrack]:
     player = get_player(guild_id)
+
     return player.queue
 
 
-async def play_track(ctx: tanjun.abc.Context, track: Track) -> None:
+async def play_track(ctx: tanjun.abc.Context, track: AudioTrack) -> None:
     guild = await ctx.fetch_guild()
     if guild:
         await _play_tracks(ctx, guild, [track])
 
 
-async def play_playlist(ctx: tanjun.abc.Context, playlist: PlayList) -> None:
+async def play_playlist(ctx: tanjun.abc.Context, tracks: List[AudioTrack]) -> None:
     guild = await ctx.fetch_guild()
     if guild:
-        await _play_tracks(ctx, guild, await youtube_service.filter_age_restricted(playlist.tracks))
+        await _play_tracks(ctx, guild, await youtube_service.filter_age_restricted(tracks))
 
 
-async def _play_tracks(ctx: tanjun.abc.Context, guild: Guild, tracks: List[Track]) -> None:
+async def _play_tracks(ctx: tanjun.abc.Context, guild: Guild, tracks: List[AudioTrack]) -> None:
     queue = await get_queue(guild.id)
     player = get_player(guild.id)
 
@@ -71,16 +62,19 @@ async def _play_tracks(ctx: tanjun.abc.Context, guild: Guild, tracks: List[Track
     for track in tracks:
         # There can be a race condition where the bot hasn't yet joined the voice channel
         # before attempting to play. In that case, we retry.
-        try:
-            async for attempt in AsyncRetrying(
-                retry=retry_if_exception_type(NodeError),
-                stop=stop_after_attempt(3),
-                wait=wait_fixed(0.25),
-            ):
-                with attempt:
-                    await player.play(track, ctx.author.id)
-        except RetryError as re:
-            logger.exception(re)
+        # try:
+        #     async for attempt in AsyncRetrying(
+        #         retry=retry_if_exception_type(NodeError),
+        #         stop=stop_after_attempt(3),
+        #         wait=wait_fixed(0.25),
+        #     ):
+        #         with attempt:
+        player.add(track)
+        # except RetryError as re:
+        #     logger.exception(re)
+
+    if not player.is_playing:
+        await player.play()  # type: ignore
 
 
 async def pause_control(ctx: tanjun.abc.Context, pause: bool) -> None:
@@ -91,6 +85,7 @@ async def pause_control(ctx: tanjun.abc.Context, pause: bool) -> None:
             await embed_service.reply_message(
                 ctx, f'{"Pausing" if pause else "Resuming"} {queue[0].title}...'
             )
-            await player.pause(pause)
+            await player.set_pause(pause)
+            # await player.pause(pause)
         else:
             await embed_service.reply_message(ctx, "Queue empty")
