@@ -1,12 +1,10 @@
 import asyncio
 from contextlib import asynccontextmanager
-from datetime import datetime
 from typing import AsyncIterator, Dict, Optional
 
 from hikari import Snowflake
 
 from discord_sound_streamer.datastore.models.commands import LastCommandValue
-from discord_sound_streamer.logger import logger
 
 _LAST_COMMANDS_LOCK: asyncio.Lock = asyncio.Lock()
 _LAST_COMMANDS: Dict[Snowflake, LastCommandValue] = {}

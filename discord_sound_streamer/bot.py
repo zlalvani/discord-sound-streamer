@@ -44,6 +44,13 @@ class EventHandler:
 
     @lavalink.listener(lavalink.QueueEndEvent)
     async def queue_finish(self, event: lavalink.QueueEndEvent):
+        async with commands_operations.get_last_command(
+            hikari.Snowflake(event.player.guild_id)
+        ) as command:
+            if command:
+                await bot.rest.create_message(
+                    command.channel_id, embed=embed_service.build_message_embed("Queue completed")
+                )
         logger.info("Queue finished on guild: %s", event.player.guild_id)
 
 

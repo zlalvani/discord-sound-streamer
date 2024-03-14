@@ -5,7 +5,6 @@ from urllib.parse import urlparse
 import tanjun
 from hikari import Embed
 
-# from lavaplay import Track
 from lavalink import AudioTrack
 
 _DOMAIN_TITLES = {
@@ -36,7 +35,7 @@ def _apply_track_list_to_embed(embed: Embed, tracks: List[AudioTrack]) -> None:
         )
 
 
-def _build_message_embed(message: str) -> Embed:
+def build_message_embed(message: str) -> Embed:
     embed = Embed(title=message, color=0x000000)
     return embed
 
@@ -96,4 +95,4 @@ def build_search_embed(query: str, search_results: List[AudioTrack]) -> Embed:
 
 
 async def reply_message(ctx: tanjun.abc.Context, message: str) -> None:
-    await ctx.respond(embed=_build_message_embed(message))
+    await ctx.respond(embed=build_message_embed(message))
