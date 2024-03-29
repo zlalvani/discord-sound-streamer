@@ -21,7 +21,10 @@ async def is_age_restricted(track: AudioTrack) -> bool:
     if track.source_name != "youtube":
         return False
 
-    if CONFIG.USE_INVIDIOUS_AGE_RESTRICTED:
+    if not CONFIG.YOUTUBE_FILTER_AGE_RESTRICTED:
+        return False
+
+    if CONFIG.YOUTUBE_USE_INVIDIOUS_AGE_RESTRICTED_CHECK:
         return await _is_age_restricted_invidious(track)
 
     return await _is_age_restricted_youtube(track)
@@ -50,7 +53,7 @@ async def filter_age_restricted(tracks: List[AudioTrack]) -> List[AudioTrack]:
     # TODO bug: don't filter all non youtube here
     tracks = [t for t in tracks if t.source_name == "youtube"]
 
-    if CONFIG.USE_INVIDIOUS_AGE_RESTRICTED:
+    if CONFIG.YOUTUBE_USE_INVIDIOUS_AGE_RESTRICTED_CHECK:
         return await _filter_age_restricted_invidious(tracks)
 
     return await _filter_age_restricted_youtube(tracks)

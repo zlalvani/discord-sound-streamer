@@ -17,7 +17,8 @@ class Settings(BaseSettings):
     IMAGE_PATH: str = "./assets/image/"
     WAIT_FOR_LAVALINK: bool = False
     INACTIVE_TIMEOUT: int = 300
-    USE_INVIDIOUS_AGE_RESTRICTED: bool = True
+    YOUTUBE_FILTER_AGE_RESTRICTED: bool = False
+    YOUTUBE_USE_INVIDIOUS_AGE_RESTRICTED_CHECK: bool = True
 
     class Config:
         case_sensitive = True
