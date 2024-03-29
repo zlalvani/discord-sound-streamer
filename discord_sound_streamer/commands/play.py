@@ -41,7 +41,7 @@ async def skip(ctx: tanjun.abc.Context, selection: int) -> None:
                 await embed_service.reply_message(
                     ctx, f"Skipping {player.queue[selection - 1].title}..."
                 )
-                player.queue.pop(selection - 1)
+                player.queue.pop(selection - 2)
             except IndexError:
                 await embed_service.reply_message(ctx, f"Selection {selection} not in queue")
         else:
