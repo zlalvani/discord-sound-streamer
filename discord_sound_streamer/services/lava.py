@@ -2,6 +2,7 @@ from typing import List, Optional
 from urllib.parse import urlparse
 
 from discord_sound_streamer.bot import lavalink_client
+from discord_sound_streamer.logger import logger
 from discord_sound_streamer.services import youtube as youtube_service
 from lavalink import AudioTrack, LoadResult
 
@@ -25,6 +26,8 @@ async def search(query: str) -> LoadResult:
         query = f"https://www.youtube.com/watch?v={parsed.path.split('/')[-1]}"
     if not parsed.scheme and not parsed.netloc:
         query = f"ytsearch:{query}"
+
+    logger.info(f"Searching for {query}")
 
     return await lavalink_client.get_tracks(query)
 
