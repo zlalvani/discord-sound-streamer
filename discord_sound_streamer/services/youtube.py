@@ -49,6 +49,8 @@ async def _is_age_restricted_youtube(track: AudioTrack) -> bool:
 
 
 async def filter_age_restricted(tracks: List[AudioTrack]) -> List[AudioTrack]:
+    if not CONFIG.YOUTUBE_FILTER_AGE_RESTRICTED:
+        return tracks
 
     # TODO bug: don't filter all non youtube here
     tracks = [t for t in tracks if t.source_name == "youtube"]
