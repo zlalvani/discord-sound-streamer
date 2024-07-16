@@ -1,2 +1,2 @@
-FROM fredboat/lavalink:fix-yt-400
+FROM fredboat/lavalink:4-alpine
 COPY ./application.yml /opt/Lavalink
