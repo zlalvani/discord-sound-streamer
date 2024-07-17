@@ -8,23 +8,22 @@ python-versions = ">=3.7,<4.0"
 
 [[package]]
 name = "aiohttp"
-version = "3.8.5"
+version = "3.9.5"
 description = "Async http client/server framework (asyncio)"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.8"
 
 [package.dependencies]
 aiosignal = ">=1.1.2"
-async-timeout = ">=4.0.0a3,<5.0"
+async-timeout = {version = ">=4.0,<5.0", markers = "python_version < \"3.11\""}
 attrs = ">=17.3.0"
-charset-normalizer = ">=2.0,<4.0"
 frozenlist = ">=1.1.1"
 multidict = ">=4.5,<7.0"
 yarl = ">=1.0,<2.0"
 
 [package.extras]
-speedups = ["aiodns", "brotli", "cchardet"]
+speedups = ["brotlicffi", "brotli", "aiodns"]
 
 [[package]]
 name = "aiosignal"
@@ -51,11 +50,14 @@ docs = ["sphinx (==6.1.3)", "sphinx-mdinclude (==0.5.3)"]
 
 [[package]]
 name = "alluka"
-version = "0.1.3"
+version = "0.3.1"
 description = "A type based dependency injection framework for Python 3.9+."
 category = "main"
 optional = false
-python-versions = ">=3.9.0,<3.12"
+python-versions = "<3.13,>=3.9.0"
+
+[package.dependencies]
+typing-extensions = ">=4.5,<5"
 
 [[package]]
 name = "anyio"
@@ -149,7 +151,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "attrs"
-version = "23.1.0"
+version = "23.2.0"
 description = "Classes Without Boilerplate"
 category = "main"
 optional = false
@@ -160,7 +162,8 @@ cov = ["attrs", "coverage[toml] (>=5.3)"]
 dev = ["attrs", "pre-commit"]
 docs = ["furo", "myst-parser", "sphinx", "sphinx-notfound-page", "sphinxcontrib-towncrier", "towncrier", "zope-interface"]
 tests = ["attrs", "zope-interface"]
-tests-no-zope = ["cloudpickle", "hypothesis", "mypy (>=1.1.1)", "pympler", "pytest-mypy-plugins", "pytest-xdist", "pytest (>=4.3.0)"]
+tests-mypy = ["mypy (>=1.6)", "pytest-mypy-plugins"]
+tests-no-zope = ["attrs", "cloudpickle", "hypothesis", "pympler", "pytest-xdist", "pytest (>=4.3.0)"]
 
 [[package]]
 name = "babel"
@@ -285,7 +288,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7
 
 [[package]]
 name = "colorlog"
-version = "6.7.0"
+version = "6.8.2"
 description = "Add colours to the output of Python's logging module."
 category = "main"
 optional = false
@@ -436,32 +439,32 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "hikari"
-version = "2.0.0.dev120"
+version = "2.0.0.dev126"
 description = "A sane Discord API for Python 3 built on asyncio and good intentions"
 category = "main"
 optional = false
-python-versions = ">=3.8.0,<3.12"
+python-versions = "<3.13,>=3.8.0"
 
 [package.dependencies]
-aiohttp = ">=3.8,<4.0"
-attrs = ">=23.1,<24.0"
-colorlog = ">=6.7,<7.0"
+aiohttp = ">=3.9,<4.0"
+attrs = ">=23.2,<24.0"
+colorlog = ">=6.8,<7.0"
 multidict = ">=6.0,<7.0"
 
 [package.extras]
 server = ["pynacl (>=1.5,<2.0)"]
-speedups = ["aiohttp[speedups] (>=3.8,<4.0)", "ciso8601 (>=2.3,<3.0)", "orjson (>=3.9,<4.0)"]
+speedups = ["aiohttp[speedups] (>=3.9,<4.0)", "ciso8601 (>=2.3,<3.0)", "orjson (>=3.10,<4.0)"]
 
 [[package]]
 name = "hikari-tanjun"
-version = "2.16.1"
+version = "2.17.5"
 description = "A flexible command framework designed to extend Hikari."
 category = "main"
 optional = false
-python-versions = ">=3.9.0,<3.12"
+python-versions = "<3.13,>=3.9.0"
 
 [package.dependencies]
-alluka = ">=0.1.2,<1"
+alluka = ">=0.2.0,<1"
 hikari = ">=2.0.0.dev115,<3"
 typing-extensions = ">=4.5,<5"
 
@@ -938,18 +941,25 @@ test = ["hatch", "ipykernel", "jupyterlab-server", "openapi-spec-validator (>=0.
 
 [[package]]
 name = "lavalink"
-version = "5.3.0"
+version = "5.6.0"
 description = "A Lavalink WebSocket & API wrapper built around coverage, reliability and performance."
 category = "main"
 optional = false
 python-versions = "*"
+develop = false
 
 [package.dependencies]
-aiohttp = ">=3.8.0,<3.9.0"
+aiohttp = ">=3.9.0,<4"
 
 [package.extras]
 development = ["pylint", "flake8"]
 docs = ["sphinx", "pygments", "guzzle-sphinx-theme", "enum-tools", "sphinx-toolbox"]
+
+[package.source]
+type = "git"
+url = "https://github.com/zlalvani/Lavalink.py"
+reference = "development"
+resolved_reference = "1873109a2d5af37365091fce06e3f26d7293881f"
 
 [[package]]
 name = "markupsafe"
@@ -1377,7 +1387,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "pydantic"
-version = "1.10.14"
+version = "1.10.17"
 description = "Data validation and settings management using python type hints"
 category = "main"
 optional = false
@@ -1853,7 +1863,7 @@ test = ["mypy", "pre-commit", "pytest", "pytest-asyncio", "websockets (>=10.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.10"
-content-hash = "8ea2ad1ca3493437da9dfdba626ec2fa534950f9cdca800c637d27a3ff90732c"
+content-hash = "c5bff3e7d094c5f17720c3eeb3f08591d2ebbafdb15d9786d772e24a7ad753e6"
 
 [metadata.files]
 aiofiles = []
