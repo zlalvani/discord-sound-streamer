@@ -8,14 +8,14 @@ authors = ["Your Name <you@example.com>"]
 start = "discord_sound_streamer.bot:start"
 
 [tool.poetry.dependencies]
-python = "~3.10"
+python = "~3.12"
 hikari = "2.0.0.dev126"
 hikari-tanjun = "v2.17.5"
 pydantic = { extras = ["dotenv"], version = "^1.10.2" }
 python-youtube = "^0.8.2"
 httpx = "^0.23.0"
 tenacity = "^8.0.1"
-lavalink = {git = "https://github.com/zlalvani/Lavalink.py", rev = "development"}
+lavalink = { git = "https://github.com/zlalvani/Lavalink.py", rev = "development" }
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0.0"
