@@ -16,7 +16,7 @@ async def play(ctx: tanjun.abc.Context, name: str) -> None:
         result = await lava_service.search(name)
 
         if result.load_type == LoadType.PLAYLIST:
-            await play_service.play_playlist(ctx, result.tracks)
+            await play_service.play_playlist(ctx, result.playlist_info, result.tracks)
             return
 
         track = await lava_service.get_first_valid_track(result.tracks)
