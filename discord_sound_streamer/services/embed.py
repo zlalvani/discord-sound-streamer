@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 import tanjun
 from hikari import Embed
 
-from lavalink import AudioTrack
+from lavalink import AudioTrack, PlaylistInfo
 
 _DOMAIN_TITLES = {
     "youtube": "YouTube",
@@ -73,8 +73,8 @@ def build_queue_embed(tracks: List[AudioTrack]) -> Embed:
     return embed
 
 
-def build_playlist_embed(tracks: List[AudioTrack]) -> Embed:
-    embed = Embed(title="Queuing playlist...", color=0x000000)
+def build_playlist_embed(playlist_info: PlaylistInfo, tracks: List[AudioTrack]) -> Embed:
+    embed = Embed(title=f"Queuing playlist {playlist_info.name}...", color=0x000000)
     if tracks:
         _apply_track_list_to_embed(embed, tracks[:8])
         if len(tracks) > 8:
