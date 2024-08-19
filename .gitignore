@@ -133,3 +133,4 @@ dmypy.json
 
 assets/image/*
 !assets/image/example.png
+.aider*
