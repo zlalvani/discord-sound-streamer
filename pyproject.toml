@@ -9,6 +9,7 @@ start = "discord_sound_streamer.bot:start"
 
 [tool.poetry.dependencies]
 python = "~3.12"
+aiohttp = "~3.9"                                                                    # pinned because lavalink breaks with 3.10+
 hikari = "2.0.0.dev126"
 hikari-tanjun = "v2.17.5"
 pydantic = { extras = ["dotenv"], version = "^1.10.2" }
