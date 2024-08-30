@@ -4,7 +4,7 @@
 #
 
 app = "lavalink-production"
-primary_region = "ewr"
+primary_region = "scl"
 
 [build]
 
