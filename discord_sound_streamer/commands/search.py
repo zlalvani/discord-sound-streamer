@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import UTC, datetime
 
 import tanjun
 
@@ -23,14 +23,10 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
 
         # Truncate the search results to 8 because that's the max number of results we can display
         search_results = (await lava_service.get_tracks(query))[:8]
-        searched_at = datetime.utcnow()
+        searched_at = datetime.now(tz=UTC)
 
         # First, create a search for the guildmember and store it
         async with search_operations.get_search_wait_value(key) as data:
-            if data:
-                await embed_service.reply_message(ctx, "You already have a search in progress")
-                return
-
             if search_results:
                 data = SearchWaitValue(tracks=search_results, searched_at=searched_at)
                 search_operations.set_search_wait_value(key, data)
