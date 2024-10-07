@@ -16,7 +16,9 @@ _SEARCH_WAIT_STORE: Dict[SearchWaitKey, SearchWaitValue] = {}
 
 
 @asynccontextmanager
-async def get_search_wait_value(key: SearchWaitKey) -> AsyncIterator[Optional[SearchWaitValue]]:
+async def get_search_wait_value(
+    key: SearchWaitKey,
+) -> AsyncIterator[Optional[SearchWaitValue]]:
     try:
         await _SEARCH_WAIT_STORE_LOCK.acquire()
         yield _SEARCH_WAIT_STORE.get(key)
@@ -31,4 +33,6 @@ def set_search_wait_value(key: SearchWaitKey, value: SearchWaitValue) -> None:
 def remove_search_wait_value(key: SearchWaitKey) -> None:
     result = _SEARCH_WAIT_STORE.pop(key, None)
     if result is None:
-        logger.warning(f"Tried to remove a search wait value that was not in the store. Key: {key}")
+        logger.warning(
+            f"Tried to remove a search wait value that was not in the store. Key: {key}"
+        )

@@ -40,7 +40,6 @@ async def get_tracks(query: str) -> List[AudioTrack]:
 
 # TODO move to youtube_service
 async def get_first_valid_track(tracks: List[AudioTrack]) -> Optional[AudioTrack]:
-
     for track in tracks:
         if not await youtube_service.is_age_restricted(track):
             return track
