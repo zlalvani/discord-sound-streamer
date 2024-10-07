@@ -35,7 +35,10 @@ async def play_playlist(
     guild = await ctx.fetch_guild()
     if guild:
         await _play_tracks(
-            ctx, guild, await youtube_service.filter_age_restricted(tracks), playlist_info
+            ctx,
+            guild,
+            await youtube_service.filter_age_restricted(tracks),
+            playlist_info,
         )
 
 
@@ -55,16 +58,26 @@ async def _play_tracks(
         await embed_service.reply_message(ctx, "You are not in a voice channel!")
         return
 
-    if queue and bot_voice_state and bot_voice_state.channel_id != user_voice_state.channel_id:
-        await embed_service.reply_message(ctx, "Already playing a track in another channel.")
+    if (
+        queue
+        and bot_voice_state
+        and bot_voice_state.channel_id != user_voice_state.channel_id
+    ):
+        await embed_service.reply_message(
+            ctx, "Already playing a track in another channel."
+        )
         return
 
     await bot.update_voice_state(guild.id, user_voice_state.channel_id, self_deaf=True)
 
     if len(tracks) == 1:
-        await ctx.respond(embed=embed_service.build_track_embed(tracks[0], title="Queueing..."))
+        await ctx.respond(
+            embed=embed_service.build_track_embed(tracks[0], title="Queueing...")
+        )
     elif playlist_info:
-        await ctx.respond(embed=embed_service.build_playlist_embed(playlist_info, tracks))
+        await ctx.respond(
+            embed=embed_service.build_playlist_embed(playlist_info, tracks)
+        )
     else:
         raise ValueError("No playlist info provided")
 

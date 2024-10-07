@@ -27,14 +27,18 @@ async def play(ctx: tanjun.abc.Context, name: str) -> None:
 
 
 @component.with_slash_command
-@tanjun.with_int_slash_option("selection", "the number of your selection", default=1, min_value=1)
+@tanjun.with_int_slash_option(
+    "selection", "the number of your selection", default=1, min_value=1
+)
 @tanjun.as_slash_command("skip", "skip the current song")
 async def skip(ctx: tanjun.abc.Context, selection: int) -> None:
     if ctx.guild_id:
         player = play_service.get_player(ctx.guild_id)
 
         if selection == 1 and player.current:
-            await embed_service.reply_message(ctx, f"Skipping {player.current.title}...")
+            await embed_service.reply_message(
+                ctx, f"Skipping {player.current.title}..."
+            )
             await player.skip()
         elif player.queue:
             try:
@@ -43,7 +47,9 @@ async def skip(ctx: tanjun.abc.Context, selection: int) -> None:
                 )
                 player.queue.pop(selection - 2)
             except IndexError:
-                await embed_service.reply_message(ctx, f"Selection {selection} not in queue")
+                await embed_service.reply_message(
+                    ctx, f"Selection {selection} not in queue"
+                )
         else:
             await embed_service.reply_message(ctx, "Queue empty")
 
@@ -147,7 +153,9 @@ async def current(ctx: tanjun.abc.Context) -> None:
         player = play_service.get_player(ctx.guild_id)
         if player.current:
             await ctx.respond(
-                embed=embed_service.build_track_embed(player.current, show_time_remaining=True)
+                embed=embed_service.build_track_embed(
+                    player.current, show_time_remaining=True
+                )
             )
         else:
             await embed_service.reply_message(ctx, "Queue empty")

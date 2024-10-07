@@ -30,9 +30,13 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
             if search_results:
                 data = SearchWaitValue(tracks=search_results, searched_at=searched_at)
                 search_operations.set_search_wait_value(key, data)
-                await ctx.respond(embed=embed_service.build_search_embed(query, search_results))
+                await ctx.respond(
+                    embed=embed_service.build_search_embed(query, search_results)
+                )
             else:
-                await embed_service.reply_message(ctx, f"No results found for {query}...")
+                await embed_service.reply_message(
+                    ctx, f"No results found for {query}..."
+                )
                 return
 
         # After 30 seconds, the search is considered expired. If it still exists, remove it.
@@ -44,7 +48,9 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
 
 
 @component.with_slash_command
-@tanjun.with_int_slash_option("selection", "the number of your selection (must have open search)")
+@tanjun.with_int_slash_option(
+    "selection", "the number of your selection (must have open search)"
+)
 @tanjun.as_slash_command("select", "select a search result")
 async def select(ctx: tanjun.abc.Context, selection: int) -> None:
     if ctx.guild_id:

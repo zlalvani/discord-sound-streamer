@@ -27,11 +27,15 @@ def _apply_track_list_to_embed(embed: Embed, tracks: List[AudioTrack]) -> None:
     for ordinal, track in enumerate(tracks, start=1):
         # Discord embeds have max width of 3 inline fields, so they will automatically wrap after this
         embed.add_field(
-            name=f"{ordinal}. {track.title}", value=_build_track_link(track), inline=True
+            name=f"{ordinal}. {track.title}",
+            value=_build_track_link(track),
+            inline=True,
         )
         embed.add_field(name="Uploader", value=track.author, inline=True)
         embed.add_field(
-            name="Length", value=str(timedelta(milliseconds=track.duration)), inline=True
+            name="Length",
+            value=str(timedelta(milliseconds=track.duration)),
+            inline=True,
         )
 
 
@@ -50,7 +54,8 @@ def build_track_embed(
         name="Remaining" if show_time_remaining else "Length",
         value=str(
             timedelta(
-                milliseconds=track.duration - (1000 * track.position if show_time_remaining else 0)
+                milliseconds=track.duration
+                - (1000 * track.position if show_time_remaining else 0)
             )
         ).split(".")[0],
         inline=True,
@@ -64,7 +69,9 @@ def build_queue_embed(tracks: List[AudioTrack]) -> Embed:
     if tracks:
         _apply_track_list_to_embed(embed, tracks[:8])
         if len(tracks) > 8:
-            embed.add_field(name="...", value=f"{len(tracks) - 8} more items", inline=False)
+            embed.add_field(
+                name="...", value=f"{len(tracks) - 8} more items", inline=False
+            )
         embed.set_footer(
             text=f'Total queue time remaining: {str(timedelta(milliseconds=sum(t.duration - (t.position * 1000) for t in tracks))).split(".")[0]}'
         )
@@ -73,12 +80,16 @@ def build_queue_embed(tracks: List[AudioTrack]) -> Embed:
     return embed
 
 
-def build_playlist_embed(playlist_info: PlaylistInfo, tracks: List[AudioTrack]) -> Embed:
+def build_playlist_embed(
+    playlist_info: PlaylistInfo, tracks: List[AudioTrack]
+) -> Embed:
     embed = Embed(title=f"Queuing playlist {playlist_info.name}...", color=0x000000)
     if tracks:
         _apply_track_list_to_embed(embed, tracks[:8])
         if len(tracks) > 8:
-            embed.add_field(name="...", value=f"{len(tracks) - 8} more items", inline=False)
+            embed.add_field(
+                name="...", value=f"{len(tracks) - 8} more items", inline=False
+            )
         embed.set_footer(
             text=f'Total playlist time: {str(timedelta(milliseconds=sum(t.duration - (t.position * 1000) for t in tracks))).split(".")[0]}'
         )
@@ -88,9 +99,13 @@ def build_playlist_embed(playlist_info: PlaylistInfo, tracks: List[AudioTrack]) 
 
 
 def build_search_embed(query: str, search_results: List[AudioTrack]) -> Embed:
-    embed = Embed(title="Search Results", description=f'Results for "{query}"', color=0x000000)
+    embed = Embed(
+        title="Search Results", description=f'Results for "{query}"', color=0x000000
+    )
     _apply_track_list_to_embed(embed, search_results)
-    embed.set_footer(text=f"Use /select <number> to select a track in the next 30 seconds")
+    embed.set_footer(
+        text="Use /select <number> to select a track in the next 30 seconds"
+    )
     return embed
 
 

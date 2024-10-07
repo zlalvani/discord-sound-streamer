@@ -61,10 +61,15 @@ async def filter_age_restricted(tracks: List[AudioTrack]) -> List[AudioTrack]:
     return await _filter_age_restricted_youtube(tracks)
 
 
-async def _filter_age_restricted_invidious(tracks: List[AudioTrack]) -> List[AudioTrack]:
+async def _filter_age_restricted_invidious(
+    tracks: List[AudioTrack],
+) -> List[AudioTrack]:
     # This is a fanout, so it may be throttled
     track_lookup = {track.identifier: track for track in tracks}
-    videos = [await future for future in [invidious_client.get_video(t.identifier) for t in tracks]]
+    videos = [
+        await future
+        for future in [invidious_client.get_video(t.identifier) for t in tracks]
+    ]
     return [track_lookup[v.videoId] for v in videos if v.isFamilyFriendly]
 
 
@@ -82,7 +87,9 @@ async def _filter_age_restricted_youtube(tracks: List[AudioTrack]) -> List[Audio
     assert videos
 
     return [
-        track_lookup[video.id] for video in videos if not _video_age_restricted(video) and video.id
+        track_lookup[video.id]
+        for video in videos
+        if not _video_age_restricted(video) and video.id
     ]
 
 

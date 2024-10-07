@@ -13,11 +13,14 @@ async def leave_inactive_voice_channels() -> None:
         async with commands_operations.get_last_command(guild_id) as last_command:
             if (
                 last_command is None
-                or (datetime.now(UTC) - last_command.executed_at).seconds > CONFIG.INACTIVE_TIMEOUT
+                or (datetime.now(UTC) - last_command.executed_at).seconds
+                > CONFIG.INACTIVE_TIMEOUT
             ):
                 player = play_service.get_player(guild_id)
                 if player.is_playing:
-                    logger.info(f"Skipping voice channel {guild_id} because it's playing")
+                    logger.info(
+                        f"Skipping voice channel {guild_id} because it's playing"
+                    )
                     continue
                 logger.info(f"Leaving inactive voice channel {guild_id}")
                 await bot.update_voice_state(guild_id, None)

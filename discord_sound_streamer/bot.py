@@ -16,7 +16,9 @@ from discord_sound_streamer.services import embed as embed_service
 bot = hikari.GatewayBot(token=CONFIG.BOT_TOKEN)
 
 client = tanjun.Client.from_gateway_bot(
-    bot, mention_prefix=True, declare_global_commands=CONFIG.GUILD_ID if CONFIG.GUILD_ID else False
+    bot,
+    mention_prefix=True,
+    declare_global_commands=CONFIG.GUILD_ID if CONFIG.GUILD_ID else False,
 )
 
 
@@ -30,7 +32,8 @@ class EventHandler:
         ) as command:
             if command:
                 await bot.rest.create_message(
-                    command.channel_id, embed=embed_service.build_track_embed(event.track)
+                    command.channel_id,
+                    embed=embed_service.build_track_embed(event.track),
                 )
         logger.info("Track started on guild: %s", event.player.guild_id)
 
@@ -40,7 +43,9 @@ class EventHandler:
 
     @lavalink.listener(lavalink.TrackExceptionEvent)
     async def track_exception(self, event: lavalink.TrackExceptionEvent):
-        logger.warning("Track exception event happened on guild: %d", event.player.guild_id)
+        logger.warning(
+            "Track exception event happened on guild: %d", event.player.guild_id
+        )
 
     @lavalink.listener(lavalink.QueueEndEvent)
     async def queue_finish(self, event: lavalink.QueueEndEvent):
@@ -49,7 +54,8 @@ class EventHandler:
         ) as command:
             if command:
                 await bot.rest.create_message(
-                    command.channel_id, embed=embed_service.build_message_embed("Queue completed")
+                    command.channel_id,
+                    embed=embed_service.build_message_embed("Queue completed"),
                 )
         logger.info("Queue finished on guild: %s", event.player.guild_id)
 
@@ -57,6 +63,7 @@ class EventHandler:
 lavalink_client = lavalink.Client(CONFIG.BOT_ID)
 
 lavalink_client.add_event_hooks(EventHandler())
+
 
 # On voice state update the bot will update the lavalink node
 @bot.listen()
@@ -77,7 +84,6 @@ async def voice_state_update(event: hikari.VoiceStateUpdateEvent) -> None:
 
 @bot.listen()
 async def voice_server_update(event: hikari.VoiceServerUpdateEvent) -> None:
-
     # the data needs to be transformed before being handed down to
     # voice_update_handler
     if event.endpoint:
@@ -125,7 +131,9 @@ async def health_check_handler(_: StreamReader, writer: StreamWriter) -> None:
 
 async def start_health_check_server() -> None:
     # Start TCP server
-    server = await asyncio.start_server(health_check_handler, "0.0.0.0", CONFIG.HEALTH_CHECK_PORT)
+    server = await asyncio.start_server(
+        health_check_handler, "0.0.0.0", CONFIG.HEALTH_CHECK_PORT
+    )
     async with server:
         await server.serve_forever()
 
@@ -143,7 +151,9 @@ def start():
             await asyncio.sleep(30)
 
     asyncio.get_event_loop_policy().get_event_loop().create_task(loop())
-    asyncio.get_event_loop_policy().get_event_loop().create_task(start_health_check_server())
+    asyncio.get_event_loop_policy().get_event_loop().create_task(
+        start_health_check_server()
+    )
 
     bot.run()
 
