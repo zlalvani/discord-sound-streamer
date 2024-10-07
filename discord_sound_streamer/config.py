@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -20,8 +20,7 @@ class Settings(BaseSettings):
     YOUTUBE_FILTER_AGE_RESTRICTED: bool = False
     YOUTUBE_USE_INVIDIOUS_AGE_RESTRICTED_CHECK: bool = True
 
-    class Config:
-        case_sensitive = True
+    model_config = SettingsConfigDict(env_file=".env.local", case_sensitive=True)
 
 
-CONFIG = Settings(_env_file=".env.local")
+CONFIG = Settings()  # type: ignore

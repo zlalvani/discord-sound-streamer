@@ -4,7 +4,6 @@ from typing import List
 
 from hikari import Snowflake
 
-# from lavaplay import Track
 from lavalink import AudioTrack
 
 

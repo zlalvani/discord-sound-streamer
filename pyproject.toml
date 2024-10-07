@@ -12,11 +12,12 @@ python = "~3.12"
 aiohttp = "~3.9"                                                                    # pinned because lavalink breaks with 3.10+
 hikari = "2.0.0.dev126"
 hikari-tanjun = "v2.17.5"
-pydantic = { extras = ["dotenv"], version = "^1.10.2" }
+pydantic = "^2.9.2"
 python-youtube = "^0.8.2"
 httpx = "^0.23.0"
 tenacity = "^8.0.1"
 lavalink = { git = "https://github.com/zlalvani/Lavalink.py", rev = "development" }
+pydantic-settings = "^2.5.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0.0"
@@ -26,6 +27,9 @@ isort = "^5.10.1"
 pre-commit = "^2.18.1"
 ipython = "^8.4.0"
 jupyterlab = "^3.4.5"
+
+[tool.poetry.group.dev.dependencies]
+pyright = "^1.1.383"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -50,6 +54,12 @@ check_untyped_defs = true
 # warn_redundant_casts = true
 # warn_return_any = true
 strict_equality = true
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+typeCheckingMode = "standard"
+reportMissingTypeStubs = "warning"
 
 [tool.black]
 line_length = 100

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from discord_sound_streamer.bot import bot
 from discord_sound_streamer.config import CONFIG
@@ -13,7 +13,7 @@ async def leave_inactive_voice_channels() -> None:
         async with commands_operations.get_last_command(guild_id) as last_command:
             if (
                 last_command is None
-                or (datetime.utcnow() - last_command.executed_at).seconds > CONFIG.INACTIVE_TIMEOUT
+                or (datetime.now(UTC) - last_command.executed_at).seconds > CONFIG.INACTIVE_TIMEOUT
             ):
                 player = play_service.get_player(guild_id)
                 if player.is_playing:
