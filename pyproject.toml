@@ -9,14 +9,14 @@ start = "discord_sound_streamer.bot:start"
 
 [tool.poetry.dependencies]
 python = "~3.12"
-aiohttp = "~3.9"                                                                    # pinned because lavalink breaks with 3.10+
-hikari = "2.0.0.dev126"
-hikari-tanjun = "v2.17.5"
+aiohttp = "~3.10"
+hikari = "2.1.0"
+hikari-tanjun = "v2.17.6"
 pydantic = "^2.9.2"
 python-youtube = "^0.8.2"
 httpx = "^0.23.0"
 tenacity = "^8.0.1"
-lavalink = { git = "https://github.com/zlalvani/Lavalink.py", rev = "development" }
+lavalink = { git = "https://github.com/zlalvani/Lavalink.py", rev = "zlalvani/fix-aiohttp-3-10" } # pinned because lavalink breaks with 3.10+
 pydantic-settings = "^2.5.2"
 
 [tool.poetry.group.dev.dependencies]
