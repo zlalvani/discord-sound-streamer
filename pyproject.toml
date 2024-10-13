@@ -18,6 +18,7 @@ httpx = "^0.23.0"
 tenacity = "^8.0.1"
 lavalink = { git = "https://github.com/zlalvani/Lavalink.py", rev = "zlalvani/fix-aiohttp-3-10" } # pinned because lavalink breaks with 3.10+
 pydantic-settings = "^2.5.2"
+attrs = "^24.2.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0.0"

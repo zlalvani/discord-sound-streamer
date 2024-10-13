@@ -1,5 +1,6 @@
 import tanjun
 
+from discord_sound_streamer.polymorphs.responder import SlashCommandResponder
 from discord_sound_streamer.services import embed as embed_service
 from discord_sound_streamer.services import lava as lava_service
 from discord_sound_streamer.services import play as play_service
@@ -15,13 +16,19 @@ async def play(ctx: tanjun.abc.Context, name: str) -> None:
     if ctx.guild_id:
         result = await lava_service.search(name)
 
+        responder = SlashCommandResponder(ctx)
+        guild = await ctx.fetch_guild()
+        author_id = ctx.author.id
+
         if result.load_type == LoadType.PLAYLIST:
-            await play_service.play_playlist(ctx, result.playlist_info, result.tracks)
+            await play_service.play_playlist(
+                responder, guild, author_id, result.playlist_info, result.tracks
+            )
             return
 
         track = await lava_service.get_first_valid_track(result.tracks)
         if track:
-            await play_service.play_track(ctx, track)
+            await play_service.play_track(responder, guild, author_id, track)
         else:
             await embed_service.reply_message(ctx, f"No results found for {name}...")
 
