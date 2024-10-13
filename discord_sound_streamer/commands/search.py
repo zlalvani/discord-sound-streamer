@@ -19,7 +19,7 @@ component = tanjun.Component()
 @component.with_slash_command
 @tanjun.with_str_slash_option("query", "search term")
 @tanjun.as_slash_command("search", "search for music", default_to_ephemeral=True)
-async def search(ctx: tanjun.abc.Context, query: str) -> None:
+async def search(ctx: tanjun.abc.SlashContext, query: str) -> None:
     if not ctx.guild_id:
         return
 
@@ -35,6 +35,14 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
 
     # First, create a search for the guildmember and store it
     async with search_operations.get_search_wait_value(key) as data:
+        if data:
+            original_message = await data.interaction.fetch_initial_response()
+
+            await data.interaction.edit_initial_response(
+                embeds=original_message.embeds,
+                components=[],
+            )
+
         await ctx.respond(
             embed=embed_service.build_search_embed(query, search_results),
             components=interaction_service.build_search_interaction(search_results),
@@ -48,6 +56,7 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
             tracks=search_results,
             searched_at=searched_at,
             search_message_id=res.id,
+            interaction=ctx.interaction,
         )
         search_operations.set_search_wait_value(key, data)
 
@@ -66,45 +75,44 @@ async def search(ctx: tanjun.abc.Context, query: str) -> None:
     "selection", "the number of your selection (must have open search)"
 )
 @tanjun.as_slash_command("select", "select a search result")
-async def select(ctx: tanjun.abc.Context, selection: int) -> None:
+async def select(ctx: tanjun.abc.SlashContext, selection: int) -> None:
     if not ctx.guild_id:
         return
+
     key = SearchWaitKey(guild_id=ctx.guild_id, user_id=ctx.author.id)
+
     async with search_operations.get_search_wait_value(key) as data:
-        if data:
-            if 0 < selection <= len(data.tracks):
-                # TODO investigate filtering age-restricted results here instead of in search (because it's slow)
-                track = data.tracks[selection - 1]
-                if await youtube_service.is_age_restricted(track):
-                    await embed_service.reply_message(
-                        ctx, "Selection is age restricted. Please try another. "
-                    )
-                    return
-                responder = SlashCommandResponder(ctx)
-                guild = await ctx.fetch_guild()
-                author_id = ctx.author.id
-                await play_service.play_track(
-                    responder, guild, author_id, data.tracks[selection - 1]
-                )
-                search_operations.remove_search_wait_value(key)
-
-                original_message = await ctx.rest.fetch_message(
-                    ctx.channel_id, data.search_message_id
-                )
-
-                await ctx.rest.edit_message(
-                    channel=ctx.channel_id,
-                    message=original_message.id,
-                    embeds=original_message.embeds,
-                    components=[],
-                )
-            else:
-                await embed_service.reply_message(
-                    ctx,
-                    f"Invalid selection. Please choose a number between 1 and {len(data.tracks)}",
-                )
-        else:
+        if not data:
             await embed_service.reply_message(ctx, "No search in progress")
+            return
+
+        if 0 < selection <= len(data.tracks):
+            # TODO investigate filtering age-restricted results here instead of in search (because it's slow)
+            track = data.tracks[selection - 1]
+            if await youtube_service.is_age_restricted(track):
+                await embed_service.reply_message(
+                    ctx, "Selection is age restricted. Please try another. "
+                )
+                return
+            responder = SlashCommandResponder(ctx)
+            guild = await ctx.fetch_guild()
+            author_id = ctx.author.id
+            await play_service.play_track(
+                responder, guild, author_id, data.tracks[selection - 1]
+            )
+            search_operations.remove_search_wait_value(key)
+
+            original_message = await data.interaction.fetch_initial_response()
+
+            await data.interaction.edit_initial_response(
+                embeds=original_message.embeds,
+                components=[],
+            )
+        else:
+            await embed_service.reply_message(
+                ctx,
+                f"Invalid selection. Please choose a number between 1 and {len(data.tracks)}",
+            )
 
 
 loader = component.make_loader()

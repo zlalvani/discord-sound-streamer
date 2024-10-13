@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List
 
-from hikari import Snowflake
+from hikari import Snowflake, CommandInteraction
 
 from lavalink import AudioTrack
 
@@ -12,6 +12,7 @@ class SearchWaitValue:
     search_message_id: Snowflake
     tracks: List[AudioTrack]
     searched_at: datetime
+    interaction: CommandInteraction
 
 
 # frozen and eq make the class hashable
