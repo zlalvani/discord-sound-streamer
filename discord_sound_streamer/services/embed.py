@@ -14,6 +14,18 @@ _DOMAIN_TITLES = {
 }
 
 
+def _format_timedelta(td: timedelta) -> str:
+    total_seconds = int(td.total_seconds())
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    # Build the formatted string dynamically
+    if hours > 0:
+        return f"{hours}:{minutes:02}:{seconds:02}"
+    else:
+        return f"{minutes}:{seconds:02}"
+
+
 def _build_track_link(track: AudioTrack) -> str:
     domain = urlparse(track.uri).netloc.split(".")[-2]
 
@@ -34,7 +46,7 @@ def _apply_track_list_to_embed(embed: Embed, tracks: List[AudioTrack]) -> None:
         embed.add_field(name="Uploader", value=track.author, inline=True)
         embed.add_field(
             name="Length",
-            value=str(timedelta(milliseconds=track.duration)),
+            value=_format_timedelta(timedelta(milliseconds=track.duration)),
             inline=True,
         )
 
@@ -45,26 +57,25 @@ def build_message_embed(message: str) -> Embed:
 
 
 def build_track_embed(
-    track: AudioTrack, title: str = "Now Playing", show_time_remaining: bool = False
+    track: AudioTrack, title: str = "Now Playing", current_position: int | None = None
 ) -> Embed:
     embed = Embed(title=title, color=0x000000)
     embed.add_field(name="Title", value=track.title, inline=True)
     embed.add_field(name="Uploader", value=track.author, inline=True)
     embed.add_field(
-        name="Remaining" if show_time_remaining else "Length",
-        value=str(
-            timedelta(
-                milliseconds=track.duration
-                - (1000 * track.position if show_time_remaining else 0)
-            )
-        ).split(".")[0],
+        name="Elapsed" if current_position is not None else "Length",
+        value=f"{_format_timedelta(
+            timedelta(milliseconds=current_position)
+            )} / {_format_timedelta(timedelta(milliseconds=track.duration))}"
+        if current_position is not None
+        else _format_timedelta(timedelta(milliseconds=track.duration)),
         inline=True,
     )
     embed.add_field(name="Link", value=_build_track_link(track), inline=True)
     return embed
 
 
-def build_queue_embed(tracks: List[AudioTrack]) -> Embed:
+def build_queue_embed(current_position: int, tracks: List[AudioTrack]) -> Embed:
     embed = Embed(title="Queue", color=0x000000)
     if tracks:
         _apply_track_list_to_embed(embed, tracks[:8])
@@ -73,7 +84,7 @@ def build_queue_embed(tracks: List[AudioTrack]) -> Embed:
                 name="...", value=f"{len(tracks) - 8} more items", inline=False
             )
         embed.set_footer(
-            text=f'Total queue time remaining: {str(timedelta(milliseconds=sum(t.duration - (t.position * 1000) for t in tracks))).split(".")[0]}'
+            text=f"Total queue time remaining: {_format_timedelta(timedelta(milliseconds=sum(t.duration for t in tracks) - current_position))}"
         )
     else:
         embed.description = "Queue empty"
@@ -91,7 +102,7 @@ def build_playlist_embed(
                 name="...", value=f"{len(tracks) - 8} more items", inline=False
             )
         embed.set_footer(
-            text=f'Total playlist time: {str(timedelta(milliseconds=sum(t.duration - (t.position * 1000) for t in tracks))).split(".")[0]}'
+            text=f"Total playlist time: {_format_timedelta(timedelta(milliseconds=sum(t.duration - (t.position * 1000) for t in tracks)))}"
         )
     else:
         embed.description = "No tracks in playlist"

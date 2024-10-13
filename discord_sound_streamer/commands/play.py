@@ -4,6 +4,7 @@ from discord_sound_streamer.polymorphs.responder import SlashCommandResponder
 from discord_sound_streamer.services import embed as embed_service
 from discord_sound_streamer.services import lava as lava_service
 from discord_sound_streamer.services import play as play_service
+from discord_sound_streamer.services import interaction as interactions_service
 from lavalink import LoadType
 
 component = tanjun.Component()
@@ -86,7 +87,8 @@ async def queue(ctx: tanjun.abc.Context) -> None:
         player = play_service.get_player(ctx.guild_id)
         await ctx.respond(
             embed=embed_service.build_queue_embed(
-                [*([player.current] if player.current else []), *player.queue]
+                player.position,
+                [*([player.current] if player.current else []), *player.queue],
             )
         )
 
@@ -160,15 +162,18 @@ async def seek(ctx: tanjun.abc.Context, time: str) -> None:
 
 
 @component.with_slash_command
-@tanjun.as_slash_command("current", "show the current song")
+@tanjun.as_slash_command("current", "show the current song", default_to_ephemeral=True)
 async def current(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
         player = play_service.get_player(ctx.guild_id)
         if player.current:
             await ctx.respond(
                 embed=embed_service.build_track_embed(
-                    player.current, show_time_remaining=True
-                )
+                    player.current, current_position=player.position
+                ),
+                components=interactions_service.build_current_controls_interaction(
+                    player
+                ),
             )
         else:
             await embed_service.reply_message(ctx, "Queue empty")
