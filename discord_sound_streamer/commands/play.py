@@ -42,17 +42,23 @@ async def skip(ctx: tanjun.abc.Context, selection: int) -> None:
     if ctx.guild_id:
         player = play_service.get_player(ctx.guild_id)
 
-        if selection == 1 and player.current:
+        adjusted_selection = selection - 1
+
+        if adjusted_selection == 0 and player.current:
             await embed_service.reply_message(
                 ctx, f"Skipping {player.current.title}..."
             )
             await player.skip()
-        elif player.queue:
+        elif len(player.queue) > 0:
             try:
+                # If a song is currently playing, the queue will be one shorter
+                if player.current:
+                    adjusted_selection -= 1
+
                 await embed_service.reply_message(
-                    ctx, f"Skipping {player.queue[selection - 1].title}..."
+                    ctx, f"Skipping {player.queue[adjusted_selection].title}..."
                 )
-                player.queue.pop(selection - 2)
+                player.queue.pop(adjusted_selection)
             except IndexError:
                 await embed_service.reply_message(
                     ctx, f"Selection {selection} not in queue"
@@ -74,7 +80,7 @@ async def unpause(ctx: tanjun.abc.Context) -> None:
 
 
 @component.with_slash_command
-@tanjun.as_slash_command("queue", "show the current queue")
+@tanjun.as_slash_command("queue", "show the current queue", default_to_ephemeral=True)
 async def queue(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
         player = play_service.get_player(ctx.guild_id)
