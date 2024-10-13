@@ -9,6 +9,7 @@ from lavalink import AudioTrack
 
 @dataclass
 class SearchWaitValue:
+    search_message_id: Snowflake
     tracks: List[AudioTrack]
     searched_at: datetime
 

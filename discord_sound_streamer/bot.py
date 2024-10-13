@@ -3,15 +3,19 @@ import os
 import random
 import time
 from asyncio import StreamReader, StreamWriter
+from typing import cast
 
 import hikari
 import tanjun
+
+from hikari.interactions.base_interactions import InteractionType
 
 import lavalink
 from discord_sound_streamer.config import CONFIG
 from discord_sound_streamer.datastore.operations import commands as commands_operations
 from discord_sound_streamer.logger import logger
 from discord_sound_streamer.services import embed as embed_service
+
 
 bot = hikari.GatewayBot(token=CONFIG.BOT_TOKEN)
 
@@ -121,6 +125,19 @@ async def on_ready(event: hikari.ShardReadyEvent) -> None:
         region="us",
         name="default-node",
     )
+
+
+@bot.listen()
+async def handle_interaction(event: hikari.InteractionCreateEvent) -> None:
+    # Avoid circular import
+    from discord_sound_streamer.services import interaction as interaction_service
+
+    if (interaction := event.interaction).type == InteractionType.MESSAGE_COMPONENT:
+        interaction = cast(hikari.ComponentInteraction, interaction)
+
+        await interaction_service.handle_component_interaction(interaction)
+    else:
+        logger.warning(f"Unhandled interaction type: {interaction.type}")
 
 
 async def health_check_handler(_: StreamReader, writer: StreamWriter) -> None:
