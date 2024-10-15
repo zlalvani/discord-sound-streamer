@@ -57,6 +57,7 @@ async def search(ctx: tanjun.abc.SlashContext, query: str) -> None:
             searched_at=searched_at,
             search_message_id=res.id,
             interaction=ctx.interaction,
+            query=query,
         )
         search_operations.set_search_wait_value(key, data)
 
@@ -81,14 +82,16 @@ async def select(ctx: tanjun.abc.SlashContext, selection: int) -> None:
 
     key = SearchWaitKey(guild_id=ctx.guild_id, user_id=ctx.author.id)
 
+    adjusted_selection = selection - 1
+
     async with search_operations.get_search_wait_value(key) as data:
         if not data:
             await embed_service.reply_message(ctx, "No search in progress")
             return
 
-        if 0 < selection <= len(data.tracks):
+        if 0 <= adjusted_selection < len(data.tracks):
             # TODO investigate filtering age-restricted results here instead of in search (because it's slow)
-            track = data.tracks[selection - 1]
+            track = data.tracks[adjusted_selection]
             if await youtube_service.is_age_restricted(track):
                 await embed_service.reply_message(
                     ctx, "Selection is age restricted. Please try another. "
@@ -98,14 +101,16 @@ async def select(ctx: tanjun.abc.SlashContext, selection: int) -> None:
             guild = await ctx.fetch_guild()
             author_id = ctx.author.id
             await play_service.play_track(
-                responder, guild, author_id, data.tracks[selection - 1]
+                responder, guild, author_id, data.tracks[adjusted_selection]
             )
             search_operations.remove_search_wait_value(key)
 
-            original_message = await data.interaction.fetch_initial_response()
-
             await data.interaction.edit_initial_response(
-                embeds=original_message.embeds,
+                embeds=[
+                    embed_service.build_search_embed(
+                        data.query, data.tracks, adjusted_selection
+                    )
+                ],
                 components=[],
             )
         else:
