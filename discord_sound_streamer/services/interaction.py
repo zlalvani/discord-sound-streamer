@@ -1,3 +1,4 @@
+import asyncio
 from lavalink import AudioTrack, DefaultPlayer
 from enum import Enum
 
@@ -41,7 +42,7 @@ def build_search_interaction(search_results: list[AudioTrack]):
     return [row]
 
 
-def build_current_controls_interaction(player: DefaultPlayer):
+def build_current_controls_interaction(player: DefaultPlayer, enabled: bool = True):
     commands_row = MessageActionRowBuilder()
     seek_row = MessageActionRowBuilder()
 
@@ -108,26 +109,32 @@ async def _refresh_controls(interaction: ComponentInteraction, initial: bool = T
         return
 
     player = play_service.get_player(interaction.guild_id)
-    if not player.current:
-        return
+
+    embed = (
+        embed_service.build_track_embed(
+            player.current, current_position=player.position
+        )
+        if player.current
+        else embed_service.build_message_embed("No track playing")
+    )
 
     if initial:
         await interaction.create_initial_response(
             ResponseType.MESSAGE_UPDATE,
-            embed=embed_service.build_track_embed(
-                player.current, current_position=player.position
+            embed=embed,
+            components=build_current_controls_interaction(
+                player, enabled=player.current is not None
             ),
-            components=build_current_controls_interaction(player),
         )
     else:
         await interaction.edit_message(
             interaction.message.id,
             embeds=[
-                embed_service.build_track_embed(
-                    player.current, current_position=player.position
-                )
+                embed,
             ],
-            components=build_current_controls_interaction(player),
+            components=build_current_controls_interaction(
+                player, enabled=player.current is not None
+            ),
         )
 
 
@@ -137,6 +144,7 @@ async def _skip(interaction: ComponentInteraction):
 
     player = play_service.get_player(interaction.guild_id)
     if not player.current:
+        await _refresh_controls(interaction)
         return
 
     responder = InteractionResponder(interaction)
@@ -152,9 +160,18 @@ async def _seek(interaction: ComponentInteraction, offset: int):
 
     player = play_service.get_player(interaction.guild_id)
     if not player.current:
+        await _refresh_controls(interaction)
         return
 
+    last_update = player._last_update
     await player.seek(max(0, min(player.position + offset, player.current.duration)))
+
+    # Wait for the player to update to make sure we have the latest state
+    attempts = 0
+    while last_update == player._last_update or attempts < 5:
+        await asyncio.sleep(0.1)
+        attempts += 1
+
     await _refresh_controls(interaction)
 
 
