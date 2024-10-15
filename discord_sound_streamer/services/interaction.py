@@ -168,7 +168,7 @@ async def _seek(interaction: ComponentInteraction, offset: int):
 
     # Wait for the player to update to make sure we have the latest state
     attempts = 0
-    while last_update == player._last_update or attempts < 5:
+    while last_update == player._last_update and attempts < 5:
         await asyncio.sleep(0.1)
         attempts += 1
 
@@ -215,5 +215,9 @@ async def _search_select(interaction: ComponentInteraction, selected: int):
         search_operations.remove_search_wait_value(key)
 
         await interaction.edit_message(
-            interaction.message.id, embeds=interaction.message.embeds, components=[]
+            interaction.message.id,
+            embeds=[
+                embed_service.build_search_embed(data.query, data.tracks, selected)
+            ],
+            components=[],
         )
