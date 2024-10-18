@@ -73,7 +73,7 @@ def build_current_controls_interaction(player: DefaultPlayer, enabled: bool = Tr
         ButtonStyle.SECONDARY, InteractionMode.SEEK_FORWARD_BIG, label=">>"
     )
 
-    return [commands_row, seek_row]  # , commands_row]
+    return [commands_row, seek_row]
 
 
 async def handle_component_interaction(interaction: ComponentInteraction):
