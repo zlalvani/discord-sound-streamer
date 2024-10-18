@@ -1,0 +1,17 @@
+# fly.toml app configuration file generated for youtube-trusted-session-generator on 2024-10-16T21:38:04-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'youtube-trusted-session-generator'
+primary_region = 'scl'
+
+[build]
+
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 512
+
+[[restart]]
+  policy = "never"
