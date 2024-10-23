@@ -14,7 +14,12 @@ _DOMAIN_TITLES = {
 }
 
 
-def _format_timedelta(td: timedelta) -> str:
+def _format_timedelta(ms: int) -> str:
+    if ms > 2**31 - 1:
+        return "∞"
+
+    td = timedelta(milliseconds=ms)
+
     total_seconds = int(td.total_seconds())
     hours, remainder = divmod(total_seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
@@ -46,7 +51,7 @@ def _apply_track_list_to_embed(embed: Embed, tracks: List[AudioTrack]) -> None:
         embed.add_field(name="Uploader", value=track.author, inline=True)
         embed.add_field(
             name="Length",
-            value=_format_timedelta(timedelta(milliseconds=track.duration)),
+            value=_format_timedelta(track.duration),
             inline=True,
         )
 
@@ -65,10 +70,10 @@ def build_track_embed(
     embed.add_field(
         name="Elapsed" if current_position is not None else "Length",
         value=f"{_format_timedelta(
-            timedelta(milliseconds=current_position)
-            )} / {_format_timedelta(timedelta(milliseconds=track.duration))}"
+            current_position
+            )} / {_format_timedelta(track.duration)}"
         if current_position is not None
-        else _format_timedelta(timedelta(milliseconds=track.duration)),
+        else _format_timedelta(track.duration),
         inline=True,
     )
     embed.add_field(name="Link", value=_build_track_link(track), inline=True)
@@ -84,7 +89,7 @@ def build_queue_embed(current_position: int, tracks: List[AudioTrack]) -> Embed:
                 name="...", value=f"{len(tracks) - 8} more items", inline=False
             )
         embed.set_footer(
-            text=f"Total queue time remaining: {_format_timedelta(timedelta(milliseconds=sum(t.duration for t in tracks) - current_position))}"
+            text=f"Total queue time remaining: {_format_timedelta(sum(t.duration for t in tracks) - current_position)}"
         )
     else:
         embed.description = "Queue empty"
@@ -102,7 +107,7 @@ def build_playlist_embed(
                 name="...", value=f"{len(tracks) - 8} more items", inline=False
             )
         embed.set_footer(
-            text=f"Total playlist time: {_format_timedelta(timedelta(milliseconds=sum(t.duration - (t.position * 1000) for t in tracks)))}"
+            text=f"Total playlist time: {_format_timedelta(sum(t.duration - (t.position * 1000) for t in tracks))}"
         )
     else:
         embed.description = "No tracks in playlist"
