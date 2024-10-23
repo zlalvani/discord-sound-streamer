@@ -122,7 +122,7 @@ def build_search_embed(
     )
     _apply_track_list_to_embed(embed, search_results)
     embed.set_footer(
-        text="Use /select <number> to select a track in the next 30 seconds"
+        text="Use /select <number> to select a track in the next 30 seconds, or use the dropdown menu below"
         if selected is None
         else f"Selected: {selected + 1}. {search_results[selected].title}"
     )
