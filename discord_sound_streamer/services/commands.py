@@ -12,7 +12,11 @@ async def update_last_command_time(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
         commands_operations.set_last_command(
             ctx.guild_id,
-            LastCommandValue(executed_at=datetime.now(UTC), channel_id=ctx.channel_id),
+            LastCommandValue(
+                executed_at=datetime.now(UTC),
+                channel_id=ctx.channel_id,
+                triggered_by=ctx.author,
+            ),
         )
         logger.info(f"Updated last command time for guild {ctx.guild_id}")
 

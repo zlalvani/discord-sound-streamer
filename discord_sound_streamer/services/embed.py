@@ -14,6 +14,10 @@ _DOMAIN_TITLES = {
 }
 
 
+def _mention(user_id: int) -> str:
+    return f"<@{user_id}>"
+
+
 def _format_timedelta(ms: int) -> str:
     if ms > 2**31 - 1:
         return "∞"
@@ -48,7 +52,12 @@ def _apply_track_list_to_embed(embed: Embed, tracks: List[AudioTrack]) -> None:
             value=_build_track_link(track),
             inline=True,
         )
-        embed.add_field(name="Uploader", value=track.author, inline=True)
+        if track.requester:
+            embed.add_field(
+                name=track.author, value=_mention(track.requester), inline=True
+            )
+        else:
+            embed.add_field(name="Uploader", value=track.author, inline=True)
         embed.add_field(
             name="Length",
             value=_format_timedelta(track.duration),
@@ -77,6 +86,8 @@ def build_track_embed(
         inline=True,
     )
     embed.add_field(name="Link", value=_build_track_link(track), inline=True)
+    if track.requester != 0:
+        embed.add_field(name="Requester", value=_mention(track.requester), inline=True)
     return embed
 
 

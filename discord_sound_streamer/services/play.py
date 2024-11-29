@@ -100,7 +100,7 @@ async def _play_tracks(
         #         wait=wait_fixed(0.25),
         #     ):
         #         with attempt:
-        player.add(track)
+        player.add(track, requester=author_id)
         # except RetryError as re:
         #     logger.exception(re)
 
