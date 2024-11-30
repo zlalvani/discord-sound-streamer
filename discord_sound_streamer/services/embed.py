@@ -44,7 +44,9 @@ def _build_track_link(track: AudioTrack) -> str:
         return f"[Link]({track.uri})"
 
 
-def _apply_track_list_to_embed(embed: Embed, tracks: List[AudioTrack]) -> None:
+def _apply_track_list_to_embed(
+    embed: Embed, tracks: List[AudioTrack], show_requester: bool = False
+) -> None:
     for ordinal, track in enumerate(tracks, start=1):
         # Discord embeds have max width of 3 inline fields, so they will automatically wrap after this
         embed.add_field(
@@ -52,7 +54,7 @@ def _apply_track_list_to_embed(embed: Embed, tracks: List[AudioTrack]) -> None:
             value=_build_track_link(track),
             inline=True,
         )
-        if track.requester:
+        if track.requester and show_requester:
             embed.add_field(
                 name=track.author, value=_mention(track.requester), inline=True
             )
@@ -94,7 +96,7 @@ def build_track_embed(
 def build_queue_embed(current_position: int, tracks: List[AudioTrack]) -> Embed:
     embed = Embed(title="Queue", color=0x000000)
     if tracks:
-        _apply_track_list_to_embed(embed, tracks[:8])
+        _apply_track_list_to_embed(embed, tracks[:8], show_requester=True)
         if len(tracks) > 8:
             embed.add_field(
                 name="...", value=f"{len(tracks) - 8} more items", inline=False
