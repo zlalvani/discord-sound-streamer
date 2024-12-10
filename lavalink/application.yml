@@ -14,6 +14,7 @@ plugins:
     # Clients are queried in the order they are given (so the first client is queried first and so on...)
     clients:
       - MUSIC
+      - ANDROID_VR
       # IOS playlist loading is currently broken: https://github.com/lavalink-devs/youtube-source/issues/60
       # - IOS
       # ANDROID_TESTSUITE is currently broken: https://github.com/lavalink-devs/youtube-source/issues/58
@@ -39,7 +40,7 @@ plugins:
 lavalink:
   plugins:
     # Replace VERSION with the current version as shown by the Releases tab or a long commit hash for snapshots.
-    - dependency: "dev.lavalink.youtube:youtube-plugin:1.8.3"
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.11.1"
       snapshot: false # Set to true if you want to use a snapshot version.
   server:
     password: "youshallnotpass"
