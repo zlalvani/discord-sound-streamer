@@ -4,7 +4,7 @@
 #
 
 app = 'youtube-trusted-session-generator'
-primary_region = 'scl'
+primary_region = 'qro'
 
 [build]
 
