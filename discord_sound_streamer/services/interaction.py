@@ -16,20 +16,29 @@ from discord_sound_streamer.services import play as play_service
 from discord_sound_streamer.services import embed as embed_service
 
 
-class InteractionMode(str, Enum):
-    SEARCH_SELECT = "search_select"
-    SKIP = "controls:skip"
-    REFRESH = "controls:refresh"
-    SEEK_BACK_BIG = "controls:seek_back_big"
-    SEEK_BACK_SMALL = "controls:seek_back_small"
-    SEEK_FORWARD_SMALL = "controls:seek_forward_small"
-    SEEK_FORWARD_BIG = "controls:seek_forward_big"
+class InteractionId:
+    class Search(str, Enum):
+        SEARCH_SELECT = "search_select"
+
+    class Controls(str, Enum):
+        SKIP = "controls:skip"
+        REFRESH = "controls:refresh"
+        SEEK_BACK_BIG = "controls:seek_back_big"
+        SEEK_BACK_SMALL = "controls:seek_back_small"
+        SEEK_FORWARD_SMALL = "controls:seek_forward_small"
+        SEEK_FORWARD_BIG = "controls:seek_forward_big"
+
+    class Queue(str, Enum):
+        PREVIOUS_PAGE = "queue:previous_page"
+        NEXT_PAGE = "queue:next_page"
 
 
-def build_search_interaction(search_results: list[AudioTrack]):
+def build_search_interaction(
+    search_results: list[AudioTrack],
+) -> list[MessageActionRowBuilder]:
     row = MessageActionRowBuilder()
 
-    menu = row.add_text_menu(InteractionMode.SEARCH_SELECT)
+    menu = row.add_text_menu(InteractionId.Search.SEARCH_SELECT)
 
     for i, track in enumerate(search_results[:8]):
         label = f"{i + 1}. {track.title}"
@@ -42,61 +51,88 @@ def build_search_interaction(search_results: list[AudioTrack]):
     return [row]
 
 
-def build_current_controls_interaction(player: DefaultPlayer, enabled: bool = True):
+def build_current_controls_interaction(
+    player: DefaultPlayer, enabled: bool = True
+) -> list[MessageActionRowBuilder]:
+    if not enabled:
+        return []
+
     commands_row = MessageActionRowBuilder()
     seek_row = MessageActionRowBuilder()
 
     progress_max_length = 32
     if player.current:
-        progress = player.position / player.current.duration
-        progress = int(progress * progress_max_length)
+        progress = int(
+            (player.position / player.current.duration) * progress_max_length
+        )
     else:
         progress = 0
 
     commands_row.add_interactive_button(
         ButtonStyle.PRIMARY,
-        InteractionMode.REFRESH,
+        InteractionId.Controls.REFRESH,
         label="█" * progress + "░" * (progress_max_length - progress),
     )
 
     seek_row.add_interactive_button(
-        ButtonStyle.SECONDARY, InteractionMode.SEEK_BACK_BIG, label="<<"
+        ButtonStyle.SECONDARY, InteractionId.Controls.SEEK_BACK_BIG, label="<<"
     )
     seek_row.add_interactive_button(
-        ButtonStyle.SECONDARY, InteractionMode.SEEK_BACK_SMALL, label="<"
-    )
-    seek_row.add_interactive_button(ButtonStyle.DANGER, InteractionMode.SKIP, emoji="⏭️")
-    seek_row.add_interactive_button(
-        ButtonStyle.SECONDARY, InteractionMode.SEEK_FORWARD_SMALL, label=">"
+        ButtonStyle.SECONDARY, InteractionId.Controls.SEEK_BACK_SMALL, label="<"
     )
     seek_row.add_interactive_button(
-        ButtonStyle.SECONDARY, InteractionMode.SEEK_FORWARD_BIG, label=">>"
+        ButtonStyle.DANGER, InteractionId.Controls.SKIP, emoji="⏭️"
+    )
+    seek_row.add_interactive_button(
+        ButtonStyle.SECONDARY, InteractionId.Controls.SEEK_FORWARD_SMALL, label=">"
+    )
+    seek_row.add_interactive_button(
+        ButtonStyle.SECONDARY, InteractionId.Controls.SEEK_FORWARD_BIG, label=">>"
     )
 
     return [commands_row, seek_row]
 
 
+# Where does the state of the current page get stored?
+def build_queue_paging_interaction() -> list[MessageActionRowBuilder]:
+    row = MessageActionRowBuilder()
+
+    row.add_interactive_button(
+        ButtonStyle.PRIMARY,
+        InteractionId.Queue.PREVIOUS_PAGE,
+        label="Previous Page",
+    )
+
+    row.add_interactive_button(
+        ButtonStyle.PRIMARY,
+        InteractionId.Queue.NEXT_PAGE,
+        label="Next Page",
+    )
+
+    return [row]
+
+
 async def handle_component_interaction(interaction: ComponentInteraction):
     if interaction.component_type == ComponentType.TEXT_SELECT_MENU:
         mode = interaction.custom_id
-        if mode == InteractionMode.SEARCH_SELECT:
+        if mode == InteractionId.Search.SEARCH_SELECT:
             selected = int(interaction.values[0])
             await _search_select(interaction, selected)
         else:
             logger.warning(f"Unknown interaction mode: {mode}")
     elif interaction.component_type == ComponentType.BUTTON:
         mode = interaction.custom_id
-        if mode == InteractionMode.REFRESH:
+        if mode == InteractionId.Controls.REFRESH:
             await _refresh_controls(interaction)
-        elif mode == InteractionMode.SKIP:
+        elif mode == InteractionId.Controls.SKIP:
             await _skip(interaction)
-        elif mode == InteractionMode.SEEK_BACK_BIG:
+        elif mode == InteractionId.Controls.SEEK_BACK_BIG:
             await _seek(interaction, -30000)
-        elif mode == InteractionMode.SEEK_BACK_SMALL:
+        elif mode == InteractionId.Controls.SEEK_BACK_SMALL:
             await _seek(interaction, -5000)
-        elif mode == InteractionMode.SEEK_FORWARD_BIG:
+        elif mode == InteractionId.Controls.SEEK_FORWARD_BIG:
             await _seek(interaction, 30000)
-        elif mode == InteractionMode.SEEK_FORWARD_SMALL:
+        elif mode == InteractionId.Controls.SEEK_FORWARD_SMALL:
             await _seek(interaction, 5000)
         else:
             logger.warning(f"Unknown interaction mode: {mode}")

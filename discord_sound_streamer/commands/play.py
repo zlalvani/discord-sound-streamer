@@ -89,7 +89,8 @@ async def queue(ctx: tanjun.abc.Context) -> None:
             embed=embed_service.build_queue_embed(
                 player.position,
                 [*([player.current] if player.current else []), *player.queue],
-            )
+            ),
+            components=interactions_service.build_queue_paging_interaction(),
         )
 
 

@@ -133,9 +133,9 @@ async def handle_interaction(event: hikari.InteractionCreateEvent) -> None:
     from discord_sound_streamer.services import interaction as interaction_service
 
     if (interaction := event.interaction).type == InteractionType.MESSAGE_COMPONENT:
-        interaction = cast(hikari.ComponentInteraction, interaction)
-
-        await interaction_service.handle_component_interaction(interaction)
+        await interaction_service.handle_component_interaction(
+            cast(hikari.ComponentInteraction, interaction)
+        )
     else:
         logger.warning(f"Unhandled interaction type: {interaction.type}")
 
