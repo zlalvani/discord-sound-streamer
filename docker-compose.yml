@@ -1,5 +1,7 @@
 services:
   lavalink:
+    env_file:
+      - .env.local
     logging:
       options:
         max-size: "10m"
@@ -21,8 +23,6 @@ services:
     environment:
       - WAIT_FOR_LAVALINK=True
       - LAVALINK_HOST=lavalink
-      - PO_TOKEN=${PO_TOKEN}
-      - VISITOR_DATA=${VISITOR_DATA}
     volumes:
       - .:/code
 

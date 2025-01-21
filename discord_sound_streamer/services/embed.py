@@ -1,4 +1,5 @@
 from datetime import timedelta
+import math
 from typing import List
 from urllib.parse import urlparse
 
@@ -97,15 +98,12 @@ def build_track_embed(
 
 
 def build_queue_embed(
-    current_position: int, tracks: List[AudioTrack], cursor: str | None = None
+    current_position: int, tracks: List[AudioTrack], current_page=0, page_size=8
 ) -> Embed:
-    page_size = 8
-    if cursor:
-        offset = tracks.index(next(t for t in tracks if t.identifier == cursor))
-        slice_ = tracks[offset : offset + page_size]
-    else:
-        offset = 0
-        slice_ = tracks[:page_size]
+    total_pages = math.ceil(len(tracks) / page_size)
+    current_page = min(max(current_page, 0), total_pages - 1)
+    offset = current_page * page_size
+    slice_ = tracks[offset : offset + page_size]
 
     embed = Embed(title="Queue", color=0x000000)
     if tracks:

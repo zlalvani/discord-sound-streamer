@@ -20,7 +20,9 @@ class Settings(BaseSettings):
     YOUTUBE_FILTER_AGE_RESTRICTED: bool = False
     YOUTUBE_USE_INVIDIOUS_AGE_RESTRICTED_CHECK: bool = True
 
-    model_config = SettingsConfigDict(env_file=".env.local", case_sensitive=True)
+    model_config = SettingsConfigDict(
+        env_file=".env.local", case_sensitive=True, extra="ignore"
+    )
 
 
 CONFIG = Settings()  # type: ignore

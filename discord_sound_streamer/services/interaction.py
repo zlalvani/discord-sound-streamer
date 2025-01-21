@@ -1,10 +1,13 @@
 import asyncio
+import math
+from urllib.parse import parse_qs, urlencode, urlparse
 from lavalink import AudioTrack, DefaultPlayer
 from enum import Enum
 
 from hikari.impl.special_endpoints import (
     MessageActionRowBuilder,
 )
+from pydantic import BaseModel
 from hikari import ComponentInteraction, ComponentType, ButtonStyle, ResponseType
 
 from discord_sound_streamer.datastore.models.search import SearchWaitKey
@@ -18,19 +21,43 @@ from discord_sound_streamer.services import embed as embed_service
 
 class InteractionId:
     class Search(str, Enum):
-        SEARCH_SELECT = "search_select"
+        SELECT = "search.select"
 
     class Controls(str, Enum):
-        SKIP = "controls:skip"
-        REFRESH = "controls:refresh"
-        SEEK_BACK_BIG = "controls:seek_back_big"
-        SEEK_BACK_SMALL = "controls:seek_back_small"
-        SEEK_FORWARD_SMALL = "controls:seek_forward_small"
-        SEEK_FORWARD_BIG = "controls:seek_forward_big"
+        SKIP = "controls.skip"
+        REFRESH = "controls.refresh"
+        SEEK_BACK_BIG = "controls.seek-back-big"
+        SEEK_BACK_SMALL = "controls.seek-back-small"
+        SEEK_FORWARD_SMALL = "controls.seek-forward-small"
+        SEEK_FORWARD_BIG = "controls.seek-forward-big"
+
+    class PageModel(BaseModel):
+        page_number: int
 
     class Queue(str, Enum):
-        PREVIOUS_PAGE = "queue:previous_page"
-        NEXT_PAGE = "queue:next_page"
+        PREVIOUS_PAGE = "queue.previous-page"
+        NEXT_PAGE = "queue.next-page"
+        SELECT_PAGE = "queue.select-page"
+
+
+def _parse_query_string(query_string: str) -> dict[str, list[str] | str]:
+    result: dict[str, list[str] | str] = {}
+
+    for key, value in parse_qs(query_string).items():
+        if len(value) == 1:
+            result[key] = value[0]
+        else:
+            result[key] = value
+    return result
+
+
+def _encode_interaction_id(identifier: str, data: BaseModel | None = None) -> str:
+    if not data:
+        return identifier
+    urlencoded = urlencode(data.model_dump())
+
+    # can't use f-string here because of the way enums are serialized with __str__
+    return identifier + "?" + urlencoded
 
 
 def build_search_interaction(
@@ -38,7 +65,7 @@ def build_search_interaction(
 ) -> list[MessageActionRowBuilder]:
     row = MessageActionRowBuilder()
 
-    menu = row.add_text_menu(InteractionId.Search.SEARCH_SELECT)
+    menu = row.add_text_menu(InteractionId.Search.SELECT)
 
     for i, track in enumerate(search_results[:8]):
         label = f"{i + 1}. {track.title}"
@@ -93,35 +120,73 @@ def build_current_controls_interaction(
     return [commands_row, seek_row]
 
 
-# Where does the state of the current page get stored?
-def build_queue_paging_interaction() -> list[MessageActionRowBuilder]:
-    row = MessageActionRowBuilder()
+def build_queue_paging_interaction(
+    tracks: list[AudioTrack], current_page=0, page_size=8
+) -> list[MessageActionRowBuilder]:
+    if len(tracks) == 0:
+        return []
+    # if not player.queue and not player.current:
+    #     return []
 
-    row.add_interactive_button(
+    select_row = MessageActionRowBuilder()
+    button_row = MessageActionRowBuilder()
+
+    # if current_page > 0:
+    button_row.add_interactive_button(
         ButtonStyle.PRIMARY,
-        InteractionId.Queue.PREVIOUS_PAGE,
+        _encode_interaction_id(
+            InteractionId.Queue.PREVIOUS_PAGE,
+            InteractionId.PageModel(page_number=current_page - 1),
+        ),
         label="Previous Page",
+        emoji="⬅️",
+        is_disabled=current_page == 0,
     )
 
-    row.add_interactive_button(
+    page_count = math.ceil(len(tracks) / page_size)
+
+    button_row.add_interactive_button(
         ButtonStyle.PRIMARY,
-        InteractionId.Queue.NEXT_PAGE,
+        _encode_interaction_id(
+            InteractionId.Queue.NEXT_PAGE,
+            InteractionId.PageModel(page_number=current_page + 1),
+        ),
         label="Next Page",
+        emoji="➡️",
+        is_disabled=current_page == page_count - 1,
     )
 
-    return [row]
+    menu = select_row.add_text_menu(
+        InteractionId.Queue.SELECT_PAGE,
+        placeholder=f"Current page: {(current_page + 1)} of {page_count}",
+    )
+
+    for i in range(page_count):
+        menu.add_option(
+            f"{i + 1} of {page_count}",
+            _encode_interaction_id(
+                InteractionId.Queue.SELECT_PAGE, InteractionId.PageModel(page_number=i)
+            ),
+        )
+
+    return [r for r in [select_row, button_row] if len(r.components) > 0]
 
 
 async def handle_component_interaction(interaction: ComponentInteraction):
+    parsed = urlparse(interaction.custom_id)
+    mode = parsed.path
     if interaction.component_type == ComponentType.TEXT_SELECT_MENU:
-        mode = interaction.custom_id
-        if mode == InteractionId.Search.SEARCH_SELECT:
+        if mode == InteractionId.Search.SELECT:
             selected = int(interaction.values[0])
             await _search_select(interaction, selected)
+        elif mode == InteractionId.Queue.SELECT_PAGE:
+            data = InteractionId.PageModel.model_validate(
+                _parse_query_string(urlparse(interaction.values[0]).query)
+            )
+            await _refresh_queue(interaction, data)
         else:
             logger.warning(f"Unknown interaction mode: {mode}")
     elif interaction.component_type == ComponentType.BUTTON:
-        mode = interaction.custom_id
         if mode == InteractionId.Controls.REFRESH:
             await _refresh_controls(interaction)
         elif mode == InteractionId.Controls.SKIP:
@@ -134,10 +199,38 @@ async def handle_component_interaction(interaction: ComponentInteraction):
             await _seek(interaction, 30000)
         elif mode == InteractionId.Controls.SEEK_FORWARD_SMALL:
             await _seek(interaction, 5000)
+        elif mode in [InteractionId.Queue.PREVIOUS_PAGE, InteractionId.Queue.NEXT_PAGE]:
+            data = InteractionId.PageModel.model_validate(
+                _parse_query_string(parsed.query)
+            )
+            await _refresh_queue(interaction, data)
         else:
             logger.warning(f"Unknown interaction mode: {mode}")
     else:
         logger.warning(f"Unknown component type: {interaction.component_type}")
+
+
+async def _refresh_queue(
+    interaction: ComponentInteraction, data: InteractionId.PageModel
+):
+    if not interaction.guild_id:
+        return
+
+    current_page = data.page_number
+
+    player = play_service.get_player(interaction.guild_id)
+
+    queued = [*([player.current] if player.current else []), *player.queue]
+
+    await interaction.create_initial_response(
+        ResponseType.MESSAGE_UPDATE,
+        embed=embed_service.build_queue_embed(
+            player.position,
+            queued,
+            current_page=current_page,
+        ),
+        components=build_queue_paging_interaction(queued, current_page),
+    )
 
 
 async def _refresh_controls(interaction: ComponentInteraction, initial: bool = True):
