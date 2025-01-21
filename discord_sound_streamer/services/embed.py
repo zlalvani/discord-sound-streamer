@@ -1,4 +1,5 @@
 from datetime import timedelta
+import math
 from typing import List
 from urllib.parse import urlparse
 
@@ -45,12 +46,15 @@ def _build_track_link(track: AudioTrack) -> str:
 
 
 def _apply_track_list_to_embed(
-    embed: Embed, tracks: List[AudioTrack], show_requester: bool = False
+    embed: Embed,
+    tracks: List[AudioTrack],
+    show_requester: bool = False,
+    offset: int = 0,
 ) -> None:
     for ordinal, track in enumerate(tracks, start=1):
         # Discord embeds have max width of 3 inline fields, so they will automatically wrap after this
         embed.add_field(
-            name=f"{ordinal}. {track.title}",
+            name=f"{ordinal + offset}. {track.title}",
             value=_build_track_link(track),
             inline=True,
         )
@@ -93,10 +97,17 @@ def build_track_embed(
     return embed
 
 
-def build_queue_embed(current_position: int, tracks: List[AudioTrack]) -> Embed:
+def build_queue_embed(
+    current_position: int, tracks: List[AudioTrack], current_page=0, page_size=8
+) -> Embed:
+    total_pages = math.ceil(len(tracks) / page_size)
+    current_page = min(max(current_page, 0), total_pages - 1)
+    offset = current_page * page_size
+    slice_ = tracks[offset : offset + page_size]
+
     embed = Embed(title="Queue", color=0x000000)
     if tracks:
-        _apply_track_list_to_embed(embed, tracks[:8], show_requester=True)
+        _apply_track_list_to_embed(embed, slice_, show_requester=True, offset=offset)
         if len(tracks) > 8:
             embed.add_field(
                 name="...", value=f"{len(tracks) - 8} more items", inline=False

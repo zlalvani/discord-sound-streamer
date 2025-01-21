@@ -85,11 +85,13 @@ async def unpause(ctx: tanjun.abc.Context) -> None:
 async def queue(ctx: tanjun.abc.Context) -> None:
     if ctx.guild_id:
         player = play_service.get_player(ctx.guild_id)
+        queued = [*([player.current] if player.current else []), *player.queue]
         await ctx.respond(
             embed=embed_service.build_queue_embed(
                 player.position,
-                [*([player.current] if player.current else []), *player.queue],
-            )
+                queued,
+            ),
+            components=interactions_service.build_queue_paging_interaction(queued),
         )
 
 
