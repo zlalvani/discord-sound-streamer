@@ -18,7 +18,7 @@ def get_player(guild_id: Snowflake) -> DefaultPlayer:
     return player
 
 
-async def get_queue(guild_id: Snowflake) -> list[AudioTrack]:
+def get_queue(guild_id: Snowflake) -> list[AudioTrack]:
     player = get_player(guild_id)
 
     return player.queue
@@ -55,7 +55,7 @@ async def _play_tracks(
     tracks: list[AudioTrack],
     playlist_info: PlaylistInfo | None = None,
 ) -> None:
-    queue = await get_queue(guild.id)
+    queue = get_queue(guild.id)
     player = get_player(guild.id)
 
     user_voice_state = guild.get_voice_state(author_id)
@@ -112,7 +112,7 @@ async def pause_control(ctx: tanjun.abc.Context, pause: bool) -> None:
     if ctx.guild_id:
         player = get_player(ctx.guild_id)
 
-        if queue := await get_queue(ctx.guild_id):
+        if queue := get_queue(ctx.guild_id):
             await embed_service.reply_message(
                 ctx, f'{"Pausing" if pause else "Resuming"} {queue[0].title}...'
             )
