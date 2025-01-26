@@ -98,7 +98,11 @@ def build_track_embed(
 
 
 def build_queue_embed(
-    current_position: int, tracks: List[AudioTrack], current_page=0, page_size=8
+    tracks: List[AudioTrack],
+    current_page=0,
+    page_size=8,
+    current_track: AudioTrack | None = None,
+    current_track_position: int | None = None,
 ) -> Embed:
     total_pages = math.ceil(len(tracks) / page_size)
     current_page = min(max(current_page, 0), total_pages - 1)
@@ -112,9 +116,14 @@ def build_queue_embed(
             embed.add_field(
                 name="...", value=f"{len(tracks) - 8} more items", inline=False
             )
-        embed.set_footer(
-            text=f"Total queue time remaining: {_format_timedelta(sum(t.duration for t in tracks) - current_position)}"
-        )
+        if current_track:
+            embed.set_footer(
+                text=f"Time remaining: {_format_timedelta(sum(t.duration for t in tracks) + current_track.duration - (current_track_position or 0) )}"
+            )
+        else:
+            embed.set_footer(
+                text=f"Total queue time: {_format_timedelta(sum(t.duration for t in tracks))}"
+            )
     else:
         embed.description = "Queue empty"
     return embed

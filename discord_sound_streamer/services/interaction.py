@@ -220,16 +220,26 @@ async def _refresh_queue(
 
     player = play_service.get_player(interaction.guild_id)
 
-    queued = [*([player.current] if player.current else []), *player.queue]
-
     await interaction.create_initial_response(
         ResponseType.MESSAGE_UPDATE,
-        embed=embed_service.build_queue_embed(
-            player.position,
-            queued,
-            current_page=current_page,
-        ),
-        components=build_queue_paging_interaction(queued, current_page),
+        embeds=[
+            *(
+                [
+                    embed_service.build_track_embed(
+                        player.current, current_position=player.position
+                    )
+                ]
+                if player.current
+                else []
+            ),
+            embed_service.build_queue_embed(
+                player.queue,
+                current_page=current_page,
+                current_track=player.current,
+                current_track_position=player.position if player.current else None,
+            ),
+        ],
+        components=build_queue_paging_interaction(player.queue, current_page),
     )
 
 
