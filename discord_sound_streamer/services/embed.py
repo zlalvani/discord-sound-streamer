@@ -112,9 +112,11 @@ def build_queue_embed(
     embed = Embed(title="Queue", color=0x000000)
     if tracks:
         _apply_track_list_to_embed(embed, slice_, show_requester=True, offset=offset)
-        if len(tracks) > 8:
+        if len(tracks) > 8 and offset + page_size < len(tracks):
             embed.add_field(
-                name="...", value=f"{len(tracks) - 8} more items", inline=False
+                name="...",
+                value=f"{len(tracks) - (offset + page_size)} more items",
+                inline=False,
             )
         if current_track:
             embed.set_footer(
