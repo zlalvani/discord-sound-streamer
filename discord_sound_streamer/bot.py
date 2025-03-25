@@ -136,6 +136,8 @@ async def handle_interaction(event: hikari.InteractionCreateEvent) -> None:
         await interaction_service.handle_component_interaction(
             cast(hikari.ComponentInteraction, interaction)
         )
+    elif interaction.type == InteractionType.APPLICATION_COMMAND:
+        pass  # Handled by command handlers
     else:
         logger.warning(f"Unhandled interaction type: {interaction.type}")
 
