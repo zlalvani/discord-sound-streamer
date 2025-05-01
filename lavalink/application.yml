@@ -40,7 +40,7 @@ plugins:
 lavalink:
   plugins:
     # Replace VERSION with the current version as shown by the Releases tab or a long commit hash for snapshots.
-    - dependency: "dev.lavalink.youtube:youtube-plugin:130561e2d2f76605eb08b2c9cc4facbf400caccb"
+    - dependency: "dev.lavalink.youtube:youtube-plugin:0e5cfca4e88c32db430ce76e6866b13035c85d22"
       snapshot: true # Set to true if you want to use a snapshot version.
   server:
     password: "youshallnotpass"
