@@ -7,6 +7,8 @@ plugins:
     pot:
       token: ${{ PO_TOKEN }}
       visitorData: ${{ VISITOR_DATA }}
+    remoteCipher:
+      url: "https://cipher.kikkia.dev/"
     allowSearch: true # Whether "ytsearch:" and "ytmsearch:" can be used.
     allowDirectVideoIds: true # Whether just video IDs can match. If false, only complete URLs will be loaded.
     allowDirectPlaylistIds: true # Whether just playlist IDs can match. If false, only complete URLs will be loaded.
@@ -40,8 +42,8 @@ plugins:
 lavalink:
   plugins:
     # Replace VERSION with the current version as shown by the Releases tab or a long commit hash for snapshots.
-    - dependency: "dev.lavalink.youtube:youtube-plugin:0e5cfca4e88c32db430ce76e6866b13035c85d22"
-      snapshot: true # Set to true if you want to use a snapshot version.
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.15.0"
+      snapshot: false # Set to true if you want to use a snapshot version.
   server:
     password: "youshallnotpass"
     sources:
