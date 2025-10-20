@@ -15,30 +15,51 @@ plugins:
     # The clients to use for track loading. See below for a list of valid clients.
     # Clients are queried in the order they are given (so the first client is queried first and so on...)
     clients:
-      - MUSIC
-      - ANDROID_VR
-      # IOS playlist loading is currently broken: https://github.com/lavalink-devs/youtube-source/issues/60
+      # - MWEB
       # - IOS
+      - WEB
+      - ANDROID_VR
+      # - MWEB
+      # - MUSIC
+      # - ANDROID_VR
+      # IOS playlist loading is currently broken: https://github.com/lavalink-devs/youtube-source/issues/60
       # ANDROID_TESTSUITE is currently broken: https://github.com/lavalink-devs/youtube-source/issues/58
       # - ANDROID_TESTSUITE
       # WEB is currently broken: https://github.com/lavalink-devs/youtube-source/issues/58
-      - WEB
-      - TVHTML5EMBEDDED
+      # - TVHTML5EMBEDDED
 
     # WEB: # names are specified as they are written below under "Available Clients".
     #   # This will disable using the WEB client for video playback.
     #   playback: false
-    # IOS:
-    #   playback: false
     WEB:
+      playback: true
+      videoLoading: true
+      searching: true
+    MWEB:
       playback: false
       videoLoading: false
-      searching: false
+      searching: true
+    IOS:
+      playback: false
+    ANDROID_VR:
+      videoLoading: false
+      playback: false
+      searching: true
+    MUSIC:
+      videoLoading: false
+      playback: false
+      searching: true
+    # WEB:
+    #   playback: false
+    #   videoLoading: false
+    #   searching: false
     TVHTML5EMBEDDED:
-      # The below config disables everything except playback for this client.
-      playlistLoading: false # Disables loading of playlists and mixes for this client.
-      videoLoading: false # Disables loading of videos for this client (playback is still allowed).
-      searching: false # Disables the ability to search for videos for this client.
+      videoLoading: false
+      playback: false
+      # # The below config disables everything except playback for this client.
+      # playlistLoading: false # Disables loading of playlists and mixes for this client.
+      # videoLoading: false # Disables loading of videos for this client (playback is still allowed).
+      # searching: false # Disables the ability to search for videos for this client.
 lavalink:
   plugins:
     # Replace VERSION with the current version as shown by the Releases tab or a long commit hash for snapshots.

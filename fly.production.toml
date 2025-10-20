@@ -4,7 +4,7 @@
 #
 
 app = "discord-sound-streamer-production"
-primary_region = "qro"
+primary_region = "gru"
 
 [build]
 
