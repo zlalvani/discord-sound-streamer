@@ -1,0 +1,16 @@
+# fly.toml app configuration file generated for potoken-generator-small-breeze-3555 on 2025-10-20T02:04:42-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'potoken-generator'
+primary_region = 'gru'
+
+
+[[restart]]
+  policy = 'never'
+
+[[vm]]
+  cpu_kind = 'performance'
+  cpus = 1
+  memory_mb = 2048
