@@ -1,7 +1,7 @@
 import tanjun
 from hikari import Guild, Snowflake
 
-from discord_sound_streamer.bot import bot, lavalink_client
+from discord_sound_streamer.bot import bot, get_lavalink_client
 from discord_sound_streamer.config import CONFIG
 from discord_sound_streamer.services import embed as embed_service
 from discord_sound_streamer.services import youtube as youtube_service
@@ -10,6 +10,7 @@ from lavalink import AudioTrack, DefaultPlayer, PlaylistInfo
 
 
 def get_player(guild_id: Snowflake) -> DefaultPlayer:
+    lavalink_client = get_lavalink_client()
     player = lavalink_client.player_manager.get(guild_id)
 
     if not player:

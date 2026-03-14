@@ -1,7 +1,7 @@
 from typing import List, Optional
 from urllib.parse import urlparse
 
-from discord_sound_streamer.bot import lavalink_client
+from discord_sound_streamer.bot import get_lavalink_client
 from discord_sound_streamer.logger import logger
 from discord_sound_streamer.services import youtube as youtube_service
 from lavalink import AudioTrack, LoadResult
@@ -29,7 +29,7 @@ async def search(query: str) -> LoadResult:
 
     logger.info(f"Searching for {query}")
 
-    return await lavalink_client.get_tracks(query)
+    return await get_lavalink_client().get_tracks(query)
 
 
 async def get_tracks(query: str) -> List[AudioTrack]:

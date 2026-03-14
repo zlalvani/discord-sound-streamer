@@ -64,9 +64,17 @@ class EventHandler:
         logger.info("Queue finished on guild: %s", event.player.guild_id)
 
 
-lavalink_client = lavalink.Client(CONFIG.BOT_ID)
+_lavalink_client: lavalink.Client | None = None
 
-lavalink_client.add_event_hooks(EventHandler())
+
+def get_lavalink_client() -> lavalink.Client:
+    global _lavalink_client
+
+    if _lavalink_client is None:
+        _lavalink_client = lavalink.Client(CONFIG.BOT_ID)
+        _lavalink_client.add_event_hooks(EventHandler())
+
+    return _lavalink_client
 
 
 # On voice state update the bot will update the lavalink node
@@ -83,7 +91,7 @@ async def voice_state_update(event: hikari.VoiceStateUpdateEvent) -> None:
             "session_id": event.state.session_id,
         },
     }
-    await lavalink_client.voice_update_handler(lavalink_data)
+    await get_lavalink_client().voice_update_handler(lavalink_data)
 
 
 @bot.listen()
@@ -99,7 +107,7 @@ async def voice_server_update(event: hikari.VoiceServerUpdateEvent) -> None:
                 "token": event.token,
             },
         }
-        await lavalink_client.voice_update_handler(lavalink_data)
+        await get_lavalink_client().voice_update_handler(lavalink_data)
 
 
 @bot.listen()
@@ -118,13 +126,16 @@ client.load_modules("discord_sound_streamer.commands.search")
 
 @bot.listen()
 async def on_ready(event: hikari.ShardReadyEvent) -> None:
-    lavalink_client.add_node(
-        host=CONFIG.LAVALINK_HOST,
-        port=CONFIG.LAVALINK_PORT,
-        password=CONFIG.LAVALINK_PASSWORD,
-        region="us",
-        name="default-node",
-    )
+    lavalink_client = get_lavalink_client()
+
+    if not lavalink_client.nodes:
+        lavalink_client.add_node(
+            host=CONFIG.LAVALINK_HOST,
+            port=CONFIG.LAVALINK_PORT,
+            password=CONFIG.LAVALINK_PASSWORD,
+            region="us",
+            name="default-node",
+        )
 
 
 @bot.listen()

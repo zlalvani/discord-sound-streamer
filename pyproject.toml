@@ -16,7 +16,7 @@ pydantic = "^2.9.2"
 python-youtube = "^0.8.2"
 httpx = "^0.23.0"
 tenacity = "^8.0.1"
-lavalink = { git = "https://github.com/zlalvani/Lavalink.py", rev = "zlalvani/fix-aiohttp-3-10" } # pinned because lavalink breaks with 3.10+
+lavalink = "5.10.0"
 pydantic-settings = "^2.5.2"
 attrs = "^24.2.0"
 
