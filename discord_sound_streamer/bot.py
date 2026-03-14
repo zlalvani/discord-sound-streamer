@@ -11,6 +11,7 @@ import tanjun
 from hikari.interactions.base_interactions import InteractionType
 
 import lavalink
+from lavalink.common import VoiceServerUpdatePayload, VoiceStateUpdatePayload
 from discord_sound_streamer.config import CONFIG
 from discord_sound_streamer.datastore.operations import commands as commands_operations
 from discord_sound_streamer.logger import logger
@@ -82,12 +83,16 @@ def get_lavalink_client() -> lavalink.Client:
 async def voice_state_update(event: hikari.VoiceStateUpdateEvent) -> None:
     # the data needs to be transformed before being handed down to
     # voice_update_handler
-    lavalink_data = {
+    lavalink_data: VoiceStateUpdatePayload = {
         "t": "VOICE_STATE_UPDATE",
         "d": {
-            "guild_id": event.state.guild_id,
-            "user_id": event.state.user_id,
-            "channel_id": event.state.channel_id,
+            "guild_id": str(event.state.guild_id),
+            "user_id": str(event.state.user_id),
+            "channel_id": (
+                str(event.state.channel_id)
+                if event.state.channel_id is not None
+                else None
+            ),
             "session_id": event.state.session_id,
         },
     }
@@ -99,10 +104,10 @@ async def voice_server_update(event: hikari.VoiceServerUpdateEvent) -> None:
     # the data needs to be transformed before being handed down to
     # voice_update_handler
     if event.endpoint:
-        lavalink_data = {
+        lavalink_data: VoiceServerUpdatePayload = {
             "t": "VOICE_SERVER_UPDATE",
             "d": {
-                "guild_id": event.guild_id,
+                "guild_id": str(event.guild_id),
                 "endpoint": event.endpoint[6:],  # get rid of wss://
                 "token": event.token,
             },

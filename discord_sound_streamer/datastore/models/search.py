@@ -1,6 +1,6 @@
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List
 
 from hikari import Snowflake, CommandInteraction
 
@@ -11,7 +11,7 @@ from lavalink import AudioTrack
 class SearchWaitValue:
     search_message_id: Snowflake
     query: str
-    tracks: List[AudioTrack]
+    tracks: Sequence[AudioTrack]
     searched_at: datetime
     interaction: CommandInteraction
 

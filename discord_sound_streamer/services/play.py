@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 import tanjun
 from hikari import Guild, Snowflake
 
@@ -37,7 +39,7 @@ async def play_playlist(
     guild: Guild | None,
     author_id: Snowflake,
     playlist_info: PlaylistInfo,
-    tracks: list[AudioTrack],
+    tracks: Sequence[AudioTrack],
 ) -> None:
     if guild:
         await _play_tracks(
@@ -53,7 +55,7 @@ async def _play_tracks(
     responder: Responder,
     guild: Guild,
     author_id: Snowflake,
-    tracks: list[AudioTrack],
+    tracks: Sequence[AudioTrack],
     playlist_info: PlaylistInfo | None = None,
 ) -> None:
     queue = get_queue(guild.id)

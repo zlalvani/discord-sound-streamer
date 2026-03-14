@@ -1,4 +1,5 @@
-from typing import List, Optional
+from collections.abc import Sequence
+from typing import Optional
 from urllib.parse import urlparse
 
 from discord_sound_streamer.bot import get_lavalink_client
@@ -7,7 +8,7 @@ from discord_sound_streamer.services import youtube as youtube_service
 from lavalink import AudioTrack, LoadResult
 
 
-async def get_and_filter_tracks(query: str, *, count: int = 1) -> List[AudioTrack]:
+async def get_and_filter_tracks(query: str, *, count: int = 1) -> list[AudioTrack]:
     """Search and filter age restricted tracks. This is currently not used because it is too slow."""
 
     result = await get_tracks(query)
@@ -32,14 +33,14 @@ async def search(query: str) -> LoadResult:
     return await get_lavalink_client().get_tracks(query)
 
 
-async def get_tracks(query: str) -> List[AudioTrack]:
+async def get_tracks(query: str) -> Sequence[AudioTrack]:
     result = await search(query)
 
     return result.tracks
 
 
 # TODO move to youtube_service
-async def get_first_valid_track(tracks: List[AudioTrack]) -> Optional[AudioTrack]:
+async def get_first_valid_track(tracks: Sequence[AudioTrack]) -> Optional[AudioTrack]:
     for track in tracks:
         if not await youtube_service.is_age_restricted(track):
             return track
