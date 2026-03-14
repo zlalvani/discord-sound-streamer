@@ -1,5 +1,5 @@
 import asyncio
-from typing import List
+from collections.abc import Sequence
 
 from pyyoutube import Api, Video, VideoListResponse
 
@@ -48,9 +48,9 @@ async def _is_age_restricted_youtube(track: AudioTrack) -> bool:
     return _video_age_restricted(video)
 
 
-async def filter_age_restricted(tracks: List[AudioTrack]) -> List[AudioTrack]:
+async def filter_age_restricted(tracks: Sequence[AudioTrack]) -> list[AudioTrack]:
     if not CONFIG.YOUTUBE_FILTER_AGE_RESTRICTED:
-        return tracks
+        return list(tracks)
 
     # TODO bug: don't filter all non youtube here
     tracks = [t for t in tracks if t.source_name == "youtube"]
@@ -62,8 +62,8 @@ async def filter_age_restricted(tracks: List[AudioTrack]) -> List[AudioTrack]:
 
 
 async def _filter_age_restricted_invidious(
-    tracks: List[AudioTrack],
-) -> List[AudioTrack]:
+    tracks: Sequence[AudioTrack],
+) -> list[AudioTrack]:
     # This is a fanout, so it may be throttled
     track_lookup = {track.identifier: track for track in tracks}
     videos = [
@@ -73,7 +73,9 @@ async def _filter_age_restricted_invidious(
     return [track_lookup[v.videoId] for v in videos if v.isFamilyFriendly]
 
 
-async def _filter_age_restricted_youtube(tracks: List[AudioTrack]) -> List[AudioTrack]:
+async def _filter_age_restricted_youtube(
+    tracks: Sequence[AudioTrack],
+) -> list[AudioTrack]:
     api = Api(api_key=CONFIG.YOUTUBE_API_KEY)
 
     track_lookup = {track.identifier: track for track in tracks}

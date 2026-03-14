@@ -1,6 +1,6 @@
 from datetime import timedelta
 import math
-from typing import List
+from collections.abc import Sequence
 from urllib.parse import urlparse
 
 import tanjun
@@ -47,7 +47,7 @@ def _build_track_link(track: AudioTrack) -> str:
 
 def _apply_track_list_to_embed(
     embed: Embed,
-    tracks: List[AudioTrack],
+    tracks: Sequence[AudioTrack],
     show_requester: bool = False,
     offset: int = 0,
 ) -> None:
@@ -98,7 +98,7 @@ def build_track_embed(
 
 
 def build_queue_embed(
-    tracks: List[AudioTrack],
+    tracks: Sequence[AudioTrack],
     current_page=0,
     page_size=8,
     current_track: AudioTrack | None = None,
@@ -132,7 +132,7 @@ def build_queue_embed(
 
 
 def build_playlist_embed(
-    playlist_info: PlaylistInfo, tracks: List[AudioTrack]
+    playlist_info: PlaylistInfo, tracks: Sequence[AudioTrack]
 ) -> Embed:
     embed = Embed(title=f"Queuing playlist {playlist_info.name}...", color=0x000000)
     if tracks:
@@ -150,7 +150,7 @@ def build_playlist_embed(
 
 
 def build_search_embed(
-    query: str, search_results: List[AudioTrack], selected: int | None = None
+    query: str, search_results: Sequence[AudioTrack], selected: int | None = None
 ) -> Embed:
     embed = Embed(
         title="Search Results", description=f'Results for "{query}"', color=0x000000

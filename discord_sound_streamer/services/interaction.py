@@ -1,4 +1,5 @@
 import asyncio
+from collections.abc import Sequence
 import math
 from urllib.parse import parse_qs, urlencode, urlparse
 from lavalink import AudioTrack, DefaultPlayer
@@ -61,7 +62,7 @@ def _encode_interaction_id(identifier: str, data: BaseModel | None = None) -> st
 
 
 def build_search_interaction(
-    search_results: list[AudioTrack],
+    search_results: Sequence[AudioTrack],
 ) -> list[MessageActionRowBuilder]:
     row = MessageActionRowBuilder()
 
